@@ -1,0 +1,37 @@
+{
+  "name": "twurlbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "child_process": "^1.0.2",
+    "crypto": "^1.0.1",
+    "crypto-js": "^4.1.1",
+    "fakerator": "^0.3.6",
+    "gender-detection-from-name": "^1.7.4",
+    "node-fetch": "^3.3.0",
+    "oauth": "^0.10.0",
+    "oauth-1.0a": "^2.2.6",
+    "onlinesim-js-api": "^1.0.22",
+    "openai": "^3.1.0",
+    "otpauth": "^9.0.2",
+    "pg": "^8.9.0",
+    "proxy-chain": "^2.2.0",
+    "puppeteer": "^19.6.0",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-stealth": "^2.11.1",
+    "random-city-name": "^1.0.2",
+    "random-name": "^0.1.2",
+    "request": "^2.88.2",
+    "selenium-webdriver": "^4.8.0",
+    "unirest": "^0.6.0",
+    "util": "^0.12.5",
+    "xvfb": "^0.4.0"
+  }
+}
