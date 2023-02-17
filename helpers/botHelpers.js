@@ -1,16 +1,28 @@
 const {Client } = require("pg");
 const fs = require('fs');
+const http = require('https');
 const unirest = require("unirest");
 const { Configuration, OpenAIApi } = require("openai");
 const databaseUrl = fs.readFileSync('/home/twitbot/twitBotAI/.databaseurl', 'utf8');
 const myPassword = fs.readFileSync('/home/twitbot/twitBotAI/.password', 'utf8');
 const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
-const botData = require('/home/twitbot/twurlBot/botData.json');
-const tags = botData.tags;
+const CryptoJS = require('crypto-js');
+//const botData = require('/home/twitbot/twurlBot/botData.json');
+//const tags = botData.tags;
 const request = require('request');
 const cheerio = require('cheerio');
-
+var botData, tags;
 const delay = (t, val) => new Promise(resolve => setTimeout(resolve, t, val));
+
+const decryptWithAES = (ciphertext, passphrase) => {
+  const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase);
+  const originalText = bytes.toString(CryptoJS.enc.Utf8);
+  return originalText;
+};
+async function start() {
+    botData = await getRemoteBotData();
+}
+start();
 
 async function getTweetText() {
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
@@ -415,5 +427,25 @@ function getBingSearchLink(url) {
             }
         });
     });
+}
+function getRemoteBotData() {
+  return new Promise((resolve, reject) => {
+
+    let req = http.get("https://bot.nexislabs.org/public/botData.html", function(res) {
+        let data = '',
+            json_data;
+        res.on('data', function(stream) {
+            data += stream;
+        });
+        res.on('end', function() {
+            var decryptedData = decryptWithAES(data, myPassword);
+            json_data = JSON.parse(decryptedData);
+                        resolve(json_data);
+        });
+    });
+    req.on('error', function(e) {
+        console.log(e.message);
+    });
+  });
 }
 module.exports = { reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword }
