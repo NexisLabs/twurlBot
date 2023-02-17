@@ -5,7 +5,7 @@ const unirest = require("unirest");
 const { Configuration, OpenAIApi } = require("openai");
 const databaseUrl = fs.readFileSync('/home/twitbot/twitBotAI/.databaseurl', 'utf8');
 const myPassword = fs.readFileSync('/home/twitbot/twitBotAI/.password', 'utf8');
-const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
+//const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
 const CryptoJS = require('crypto-js');
 //const botData = require('/home/twitbot/twurlBot/botData.json');
 //const tags = botData.tags;
@@ -21,10 +21,12 @@ const decryptWithAES = (ciphertext, passphrase) => {
 };
 async function start() {
     botData = await getRemoteBotData();
+    tags = botData.tags;
 }
 start();
 
 async function getTweetText() {
+    const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const requestStatement = botData.requestStatements[getRandomInt(botData.requestStatements.length)];
@@ -86,6 +88,7 @@ async function getTweetText() {
 }
 
 async function getReplyText(originalText) {
+    const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const configuration = new Configuration({

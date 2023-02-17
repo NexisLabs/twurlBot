@@ -24,6 +24,7 @@ puppeteer.use(StealthPlugin())
 async function start() {
     botData = await getRemoteBotData();
     tags = botData.tags
+
     loginArray = await getRemoteLogins();
     let randomAccount = loginArray[getRandomInt(loginArray.length)];
     await twitterLogin(randomAccount.username, randomAccount.password, randomAccount.email, randomAccount.useragent, randomAccount.proxy);
