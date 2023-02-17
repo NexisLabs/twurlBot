@@ -83,7 +83,7 @@ async function getTwitterBio(gender, bioTopics) {
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const configuration = new Configuration({
-      apiKey: myOpenAIApiKeyLocal,
+      apiKey: myOpenAIApiKeyLocal.trim(),
     });
     var maxTokens = 26;
     var replyMediaLink;

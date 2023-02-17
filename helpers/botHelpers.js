@@ -29,7 +29,7 @@ async function getTweetText() {
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const requestStatement = botData.requestStatements[getRandomInt(botData.requestStatements.length)];
     const configuration = new Configuration({
-      apiKey: myOpenAIApiKey,
+      apiKey: myOpenAIApiKey.trim(),
     });
 
     var promptText;
@@ -89,7 +89,7 @@ async function getReplyText(originalText) {
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const configuration = new Configuration({
-      apiKey: myOpenAIApiKey,
+      apiKey: myOpenAIApiKey.trim(),
     });
     var maxTokens = 45;
     var replyMediaLink;
