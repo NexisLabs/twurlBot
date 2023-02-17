@@ -128,7 +128,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         await reportStatus('Login', 'success');
 
         // actionFlag1 - For Group Follows
-       /* try {
+        try {
         var actionFlag1 = getRandomInt(actionConstant);
         if(actionFlag1 < (botData.groupFollowRate * actionConstant)) {
             console.log('Action 1 - groupFollowRate Triggered');
@@ -236,13 +236,12 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         }catch(err) {
             console.log('3 Caught Error: ' + err);
             await reportStatus('3', 'failed');
-        }*/
+        }
 
         // actionFlag3.1 - For Group Replies
         try {
         var actionFlag3_1 = getRandomInt(actionConstant);
-//        if(actionFlag3_1 < (botData.groupReplyRate * actionConstant)) {
-          if(true){
+        if(actionFlag3_1 < (botData.groupReplyRate * actionConstant)) {
             console.log('Action 3.1 - groupReplyRate Triggered');
             var groupAccountToReply = loginArray[getRandomInt(loginArray.length)].username;
             await page.goto('https://twitter.com/' + groupAccountToReply);
@@ -704,16 +703,16 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             await page.waitForTimeout(20000)
             await checkForCookiesButton(page);
 
-            const closeButton = await page.$x('div[aria-label="Close"]');
-            if(closeButton) {
-                //console.log(closeButtons.count + ' close buttons found');
-                //for(let i = 0; i < closeButtons.length; i++){
-                console.log('Close button detected');
-                await closeButton.click();
-                await page.waitForTimeout(1000)
-                console.log('Close button clicked');
-                //console.log('Close button clicked - Number: ' + i);
-                //}
+            const closeButtons = await page.$$('div[aria-label="Close"]');
+            if(closeButtons && closeButtons.length) {
+                console.log(closeButtons.length + ' close buttons found');
+                for(let i = 0; i < closeButtons.length; i++){
+                    console.log('Close button detected');
+                    await closeButtons[i].click();
+                    await page.waitForTimeout(5000)
+                    //console.log('Close button clicked');
+                    console.log('Close button clicked - Number: ' + i);
+                }
             }
             await page.goto('https://twitter.com/compose/tweet');
             await page.waitForTimeout(20000)
