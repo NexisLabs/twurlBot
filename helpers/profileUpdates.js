@@ -5,6 +5,7 @@ const { readFileSync } = require('fs');
 const unirest = require("unirest");
 const { Configuration, OpenAIApi } = require("openai");
 const { getGender } = require('gender-detection-from-name');
+const myOpenAIApiKeyLocal = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
 //const databaseUrl = fs.readFileSync('/home/twitbot/twitBotAI/.databaseurl', 'utf8');
 //const myPassword = fs.readFileSync('/home/twitbot/twitBotAI/.password', 'utf8');
 const botData = require('/home/twitbot/twurlBot/botData.json');
@@ -82,7 +83,7 @@ async function getTwitterBio(gender, bioTopics) {
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const configuration = new Configuration({
-      apiKey: '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',
+      apiKey: myOpenAIApiKeyLocal,
     });
     var maxTokens = 26;
     var replyMediaLink;

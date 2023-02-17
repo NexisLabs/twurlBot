@@ -4,6 +4,7 @@ const unirest = require("unirest");
 const { Configuration, OpenAIApi } = require("openai");
 const databaseUrl = fs.readFileSync('/home/twitbot/twitBotAI/.databaseurl', 'utf8');
 const myPassword = fs.readFileSync('/home/twitbot/twitBotAI/.password', 'utf8');
+const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
 const botData = require('/home/twitbot/twurlBot/botData.json');
 const tags = botData.tags;
 const request = require('request');
@@ -16,7 +17,7 @@ async function getTweetText() {
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const requestStatement = botData.requestStatements[getRandomInt(botData.requestStatements.length)];
     const configuration = new Configuration({
-      apiKey: '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',
+      apiKey: myOpenAIApiKey,
     });
 
     var promptText;
@@ -76,7 +77,7 @@ async function getReplyText(originalText) {
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const configuration = new Configuration({
-      apiKey: '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',
+      apiKey: myOpenAIApiKey,
     });
     var maxTokens = 45;
     var replyMediaLink;
