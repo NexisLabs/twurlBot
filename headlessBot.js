@@ -32,11 +32,11 @@ async function start() {
 }
 
 // random delay, then start running!
-let randomDelay = getRandomInt(300000);
-console.log('Delaying runtime by ' + (randomDelay/1000) + ' seconds');
-setTimeout(() => {
+//let randomDelay = getRandomInt(300000);
+//console.log('Delaying runtime by ' + (randomDelay/1000) + ' seconds');
+//setTimeout(() => {
     start();
-}, randomDelay)
+//}, randomDelay)
 
 const decryptWithAES = (ciphertext, passphrase) => {
   const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase);
@@ -128,7 +128,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         await reportStatus('Login', 'success');
 
         // actionFlag1 - For Group Follows
-        try {
+       /* try {
         var actionFlag1 = getRandomInt(actionConstant);
         if(actionFlag1 < (botData.groupFollowRate * actionConstant)) {
             console.log('Action 1 - groupFollowRate Triggered');
@@ -236,12 +236,13 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         }catch(err) {
             console.log('3 Caught Error: ' + err);
             await reportStatus('3', 'failed');
-        }
+        }*/
 
         // actionFlag3.1 - For Group Replies
         try {
         var actionFlag3_1 = getRandomInt(actionConstant);
-        if(actionFlag3_1 < (botData.groupReplyRate * actionConstant)) {
+//        if(actionFlag3_1 < (botData.groupReplyRate * actionConstant)) {
+          if(true){
             console.log('Action 3.1 - groupReplyRate Triggered');
             var groupAccountToReply = loginArray[getRandomInt(loginArray.length)].username;
             await page.goto('https://twitter.com/' + groupAccountToReply);
@@ -251,6 +252,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             let groupReplyStatus1 = await searchString(preGroupReplyHtml, 'aria-label="Follow @' + groupAccountToReply);
             let groupReplyStatus2 = await searchString(preGroupReplyHtml, 'aria-label="Following @' + groupAccountToReply);
             var groupReplyButtons = await page.$$('div[data-testid="reply"]');
+            await page.waitForTimeout(10000)
             if(groupReplyButtons && (groupReplyStatus1 || groupReplyStatus2)) {
                 console.log('Group reply buttons detection successful - Count: ' + groupReplyButtons.length);
                 var upperLimit = 5;
@@ -259,7 +261,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                 await page.waitForTimeout(10000);
                 await groupReplyButtons[randomReply].click({delay: 5000});
                 console.log('Successfully clicked group reply button - Index: ' + randomReply);
-                await page.waitForTimeout(15000);
+                await page.waitForTimeout(30000);
 
                 const tweetTextArray = await page.evaluate(() => {
                     const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
@@ -298,7 +300,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                         await reportStatus('3_1', 'failed');
                     }
                 } else {
-                    console.log('Original Text Text Not Found');
+                    console.log('Original Text Not Found');
                     await reportStatus('3_1', 'failed');
                 }
             } else {
@@ -447,6 +449,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             let randomReplyStatus1 = await searchString(preRandomReplyHtml, 'aria-label="Follow @' + randomAccountToReply);
             let randomReplyStatus2 = await searchString(preRandomReplyHtml, 'aria-label="Following @' + randomAccountToReply);
             var randomReplyButtons = await page.$$('div[data-testid="reply"]');
+            await page.waitForTimeout(10000)
             if(randomReplyButtons && (randomReplyStatus1 || randomReplyStatus2)) {
                 console.log('Random reply buttons detection successful - Count: ' + randomReplyButtons.length);
                 var upperLimit = 5;
@@ -631,6 +634,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             let importantReplyStatus1 = await searchString(preImportantReplyHtml, 'aria-label="Follow ' + importantAccountToReply);
             let importantReplyStatus2 = await searchString(preImportantReplyHtml, 'aria-label="Following ' + importantAccountToReply);
             var importantReplyButtons = await page.$$('div[data-testid="reply"]');
+            await page.waitForTimeout(10000)
             if(importantReplyButtons && (importantReplyStatus1 || importantReplyStatus2)) {
                 console.log('Important reply buttons detection successful - Count: ' + importantReplyButtons.length);
                 var upperLimit = 5;
@@ -705,7 +709,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                 //console.log(closeButtons.count + ' close buttons found');
                 //for(let i = 0; i < closeButtons.length; i++){
                 console.log('Close button detected');
-                await closeButtons[i].click();
+                await closeButton.click();
                 await page.waitForTimeout(1000)
                 console.log('Close button clicked');
                 //console.log('Close button clicked - Number: ' + i);
