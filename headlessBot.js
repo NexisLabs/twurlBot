@@ -699,14 +699,16 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             await page.waitForTimeout(20000)
             await checkForCookiesButton(page);
 
-            const [closeButtons] = await page.$x('div[aria-label="Close"]');
-            if(closeButtons) {
-                console.log(closeButtons.count + ' close buttons found');
-                for(let i = 0; i < closeButtons.length; i++){
-                    await closeButtons[i].click();
-                    await page.waitForTimeout(1000)
-                    console.log('Close button clicked - Number: ' + i);
-                }
+            const closeButton = await page.$x('div[aria-label="Close"]');
+            if(closeButton) {
+                //console.log(closeButtons.count + ' close buttons found');
+                //for(let i = 0; i < closeButtons.length; i++){
+                console.log('Close button detected');
+                await closeButtons[i].click();
+                await page.waitForTimeout(1000)
+                console.log('Close button clicked');
+                //console.log('Close button clicked - Number: ' + i);
+                //}
             }
             await page.goto('https://twitter.com/compose/tweet');
             await page.waitForTimeout(20000)
