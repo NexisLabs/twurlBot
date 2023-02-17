@@ -11,6 +11,7 @@ const CryptoJS = require('crypto-js');
 //const tags = botData.tags;
 const request = require('request');
 const cheerio = require('cheerio');
+const newsSites = ['https://globaleconomics.news', 'https://fox8.news', 'https://cryptnomics.org/'];
 var botData, tags;
 const delay = (t, val) => new Promise(resolve => setTimeout(resolve, t, val));
 
@@ -79,8 +80,11 @@ async function getTweetText() {
             console.log('No media link added');
             sendText = aiResponseText;
         }
-        sendText = sendText.replace('undefined', '');
-        sendText = sendText.replace('Undefined', '');
+        if(sendText.includes('undefined') || sendText.includes('Undefined')) {
+            let newsLink = await scrapeNewsLinks(newsSites[getRandomInt(newsSites.length)]);
+            sendText = sendText.replace('undefined', newsLink);
+            sendText = sendText.replace('Undefined', newsLink);
+        }
         console.log('Tag Response Text: ' + sendText);
         return new Promise((resolve, reject) => {
             resolve(sendText);
@@ -127,8 +131,14 @@ async function getReplyText(originalText) {
         console.log('No media link added');
         replyText = aiResponseText;
     }
-    replyText = replyText.replace('undefined', '');
-    replyText = replyText.replace('Undefined', '');
+    if(replyText.includes('undefined') || replyText.includes('Undefined')) {
+        let newsLink = await scrapeNewsLinks(newsSites[getRandomInt(newsSites.length)]);
+        replyText = replyText.replace('undefined', newsLink);
+        replyText = replyText.replace('Undefined', newsLink);
+    }
+
+    //replyText = replyText.replace('undefined', '');
+    //replyText = replyText.replace('Undefined', '');
     console.log('Original Tweet Text: ' + originalText);
     console.log('Reply Text: ' + replyText);
     return new Promise((resolve, reject) => {
@@ -138,7 +148,7 @@ async function getReplyText(originalText) {
 async function generateTweetMedia(text) {
   try {
     var randomFlag = getRandomInt(100);
-    if(randomFlag > 70) {
+    if(randomFlag > 85) {
         var url = 'https://getyarn.io/yarn-find?text=' + text + '&p=' + getRandomInt(2);
         request(url, function(err, resp, body){
             if(typeof body == 'string') {
@@ -166,7 +176,7 @@ async function generateTweetMedia(text) {
                });
             }
         });
-    } else if(randomFlag < 30) {
+    } else if(randomFlag < 15) {
          var yahooUrl = 'https://search.yahoo.com/search?p=' + text + '&fr=news&fr2=p%3Anews%2Cm%3Asb';
          let searchLink = await getYahooSearchLink(yahooUrl);
          return new Promise((resolve, reject) => {
@@ -176,7 +186,7 @@ async function generateTweetMedia(text) {
                  resolve(searchLink);
              }
          });
-    } else {
+    } else if(randomFlag >= 15 && randomFlag < 30) {
         var bingUrl = 'https://www.bing.com/news/search?q=' + text + '&go=Search&qs=ds&form=QBNT';
         let searchLink = await getBingSearchLink(bingUrl);
         return new Promise((resolve, reject) => {
@@ -186,13 +196,49 @@ async function generateTweetMedia(text) {
                  resolve(searchLink);
              }
          });
+    } else {
+        let mediaLink = await scrapeNewsLinks(newsSites[getRandomInt(newsSites.length)]);
+        return new Promise((resolve, reject) => {
+            resolve(mediaLink)
+        });
     }
   } catch(err) {
     console.log('Error getting tweet media - Error: ' + err);
     resolve('');
   }
 }
-
+async function scrapeNewsLinks(url) {
+  try {
+    const { data } = await axios.get(url);
+    const $ = cheerio.load(data);
+    const listItems = $("a");
+    var linkArray = [];
+    for(var i = 0; i < listItems.length; i++) {
+      linkArray.push($(listItems[i]).attr('href'));
+      if(i >= (listItems.length - 1)) {
+          var filteredArray = linkArray.slice(18,-6);
+          filteredArray = filteredArray.filter(e => e !== '#');
+          filteredArray = filteredArray.filter(e => !e.includes('category'));
+          filteredArray = filteredArray.filter(e => e.includes('-'));
+          filteredArray = filteredArray.filter(e => !e.includes('admin'));
+          filteredArray = filteredArray.filter(e => !e.includes('about-us'));
+          filteredArray = filteredArray.filter(e => !e.includes('privacy-policy'));
+          filteredArray = filteredArray.filter(e => !e.includes('contact-us'));
+          filteredArray = filteredArray.filter(e => !e.includes('#respond'));
+          filteredArray = Array.from(new Set(filteredArray));
+          return new Promise((resolve, reject) => {
+              resolve(filteredArray[getRandomInt(filteredArray.length)]);
+          });
+          //console.log(filteredArray);
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    return new Promise((resolve, reject) => {
+        resolve('');
+    });
+  }
+}
 function searchString(string, searchTerm) {
     return new Promise((resolve, reject) => {
       	  if(string.includes(searchTerm)) {
