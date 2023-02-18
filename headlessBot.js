@@ -278,11 +278,11 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                         await replyTextBox.click({ delay: 500 });
                         await replyTextBox.type(replyText, { delay: 200 });
                         console.log('Reply text entered');
-                        await page.waitForTimeout(5000)
+                        await page.waitForTimeout(10000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(5000)
+                        await page.waitForTimeout(10000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(5000)
+                        await page.waitForTimeout(10000)
 
                         const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
                         if (replyButton) {
@@ -475,11 +475,11 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                         await replyTextBox.click({ delay: 500 });
                         await replyTextBox.type(replyText, { delay: 200 });
                         console.log('Reply text entered');
-                        await page.waitForTimeout(5000)
+                        await page.waitForTimeout(10000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(5000)
+                        await page.waitForTimeout(10000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(5000)
+                        await page.waitForTimeout(10000)
                         const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
                         if (replyButton) {
                             console.log('Send Reply Button Found!');
@@ -660,11 +660,11 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                         await replyTextBox.click({ delay: 500 });
                         await replyTextBox.type(replyText, { delay: 200 });
                         console.log('Reply text entered');
-                        await page.waitForTimeout(5000)
+                        await page.waitForTimeout(10000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(5000)
+                        await page.waitForTimeout(10000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(5000)
+                        await page.waitForTimeout(10000)
                         const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
                         if (replyButton) {
                             console.log('Send Reply Button Found!');
