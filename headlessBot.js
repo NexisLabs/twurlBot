@@ -272,7 +272,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const replyTextBox = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
                         await replyTextBox.click({ delay: 500 });
@@ -469,7 +469,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const replyTextBox = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
                         await replyTextBox.click({ delay: 500 });
@@ -654,7 +654,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const replyTextBox = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
                         await replyTextBox.click({ delay: 500 });
