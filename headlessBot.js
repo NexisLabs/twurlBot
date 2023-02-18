@@ -272,7 +272,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    const replyTextBox = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
                         await replyTextBox.click({ delay: 500 });
@@ -458,7 +458,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                 await page.waitForTimeout(10000);
                 await randomReplyButtons[randomReply].click({delay: 5000});
                 console.log('Successfully clicked random reply button - Index: ' + randomReply);
-                await page.waitForTimeout(15000);
+                await page.waitForTimeout(30000);
 
                 const tweetTextArray = await page.evaluate(() => {
                     const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
@@ -469,7 +469,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    const replyTextBox = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
                         await replyTextBox.click({ delay: 500 });
@@ -643,7 +643,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                 await page.waitForTimeout(10000);
                 await importantReplyButtons[randomReply].click({delay: 5000});
                 console.log('Successfully clicked important reply button - Index: ' + randomReply);
-                await page.waitForTimeout(15000);
+                await page.waitForTimeout(30000);
 
                 const tweetTextArray = await page.evaluate(() => {
                     const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
@@ -654,7 +654,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    const replyTextBox = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
                         await replyTextBox.click({ delay: 500 });
