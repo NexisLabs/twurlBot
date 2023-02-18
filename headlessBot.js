@@ -282,9 +282,9 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                         await page.keyboard.press('Enter');
                         await page.waitForTimeout(10000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(10000)
+                        await page.waitForTimeout(30000)
 
-                        const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
+                        const replyButton = await page.$x("//span[contains(., 'Reply')]");
                         if (replyButton) {
                             console.log('Send Reply Button Found!');
                             await replyButton.click();
@@ -479,8 +479,8 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                         await page.keyboard.press('Enter');
                         await page.waitForTimeout(10000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(10000)
-                        const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
+                        await page.waitForTimeout(30000)
+                        const replyButton = await page.$x("//span[contains(., 'Reply')]");
                         if (replyButton) {
                             console.log('Send Reply Button Found!');
                             await replyButton.click();
@@ -664,8 +664,8 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                         await page.keyboard.press('Enter');
                         await page.waitForTimeout(10000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(10000)
-                        const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
+                        await page.waitForTimeout(30000)
+                        const replyButton = await page.$x("//span[contains(., 'Reply')]");
                         if (replyButton) {
                             console.log('Send Reply Button Found!');
                             await replyButton.click();
