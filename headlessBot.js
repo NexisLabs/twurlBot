@@ -1,5 +1,6 @@
 const { reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('/home/twitbot/twurlBot/helpers/botHelpers.js');
 const {Client } = require("pg");
+const axios = require('axios');
 const http = require('https');
 const fs = require('fs');
 const proxyChain = require('proxy-chain');
