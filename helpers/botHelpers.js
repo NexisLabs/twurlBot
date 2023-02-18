@@ -150,7 +150,7 @@ async function generateTweetMedia(text) {
     var randomFlag = getRandomInt(100);
     if(randomFlag > 85) {
         var url = 'https://getyarn.io/yarn-find?text=' + text + '&p=' + getRandomInt(2);
-        request(url, function(err, resp, body){
+        request(url, async function(err, resp, body){
             if(typeof body == 'string') {
             $ = cheerio.load(body);
             links = $('a'); //jquery get all hyperlinks
@@ -159,8 +159,13 @@ async function generateTweetMedia(text) {
                 let link = $(links[i]).attr('href');
                 if(link && link.includes('yarn-clip') && !linkArray.includes(link)) { linkArray.push(link); }
                 if(i >= (links.length - 1)) {
+                    var returnLink = 'https://getyarn.io' + linkArray[getRandomInt(linkArray.length)];
+                    if(!returnLink.includes('Undefined') && !returnLink.includes('undefined') && typeof returnLink !== 'undefined' && returnLink) {
+                        await reportStatus('YarnLink', 'failed');
+                    } else {
+                        await reportStatus('YarnLink', 'success');
+                    }
                     return new Promise((resolve, reject) => {
-                        var returnLink = 'https://getyarn.io' + linkArray[getRandomInt(linkArray.length)];
                         if(!returnLink.includes('Undefined') && !returnLink.includes('undefined') && typeof returnLink !== 'undefined' && returnLink) {
                             resolve(returnLink);
                         } else {
@@ -179,6 +184,11 @@ async function generateTweetMedia(text) {
     } else if(randomFlag < 15) {
          var yahooUrl = 'https://search.yahoo.com/search?p=' + text + '&fr=news&fr2=p%3Anews%2Cm%3Asb';
          let searchLink = await getYahooSearchLink(yahooUrl);
+         if(searchLink.includes('Undefined') || searchLink.includes('undefined')) { 
+             await reportStatus('YahooSearchLink', 'failed');
+         } else {
+             await reportStatus('YahooSearchLink', 'success');
+         }
          return new Promise((resolve, reject) => {
              if(searchLink.includes('Undefined') || searchLink.includes('undefined')) {
                  resolve('');
@@ -189,6 +199,11 @@ async function generateTweetMedia(text) {
     } else if(randomFlag >= 15 && randomFlag < 30) {
         var bingUrl = 'https://www.bing.com/news/search?q=' + text + '&go=Search&qs=ds&form=QBNT';
         let searchLink = await getBingSearchLink(bingUrl);
+        if(searchLink.includes('Undefined') || searchLink.includes('undefined')) { 
+            await reportStatus('BingSearchLink', 'failed');
+        } else {
+            await reportStatus('BingSearchLink', 'success');
+        }
         return new Promise((resolve, reject) => {
              if(searchLink.includes('Undefined') || searchLink.includes('undefined')) {
                  resolve('');
@@ -198,6 +213,7 @@ async function generateTweetMedia(text) {
          });
     } else {
         let mediaLink = await scrapeNewsLinks(newsSites[getRandomInt(newsSites.length)]);
+        await reportStatus('NewsLink', 'success');
         return new Promise((resolve, reject) => {
             resolve(mediaLink)
         });
