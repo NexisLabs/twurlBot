@@ -72,7 +72,7 @@ async function getTweetText() {
 
         tagArray = selectTags(getRandomIntBetween(1, 3));
         var sendText;
-        if(maxTokens == 42) {
+        if(maxTokens == 40) {
             //tweetMediaLink = await generateTweetMedia(response.data.choices[0].text);
             tweetMediaLink = await generateTweetMedia(aiResponseText);
             console.log('Adding media link to tweet text: ' + tweetMediaLink);
@@ -124,7 +124,7 @@ async function getReplyText(originalText) {
 
     //console.log(response);
     var replyText;
-    if(maxTokens == 42) {
+    if(maxTokens == 40) {
         replyMediaLink = await generateTweetMedia(aiResponseText);
         console.log('Adding media link to tweet text: ' + replyMediaLink);
         replyText = aiResponseText + ' ' + replyMediaLink;
