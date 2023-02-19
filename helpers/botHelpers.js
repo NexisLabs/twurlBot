@@ -53,7 +53,7 @@ async function getTweetText() {
     }
 
     if(getRandomInt(100) > 65) {
-        maxTokens = 42;
+        maxTokens = 40;
     } else {
         maxTokens = 45;
     }
@@ -105,7 +105,7 @@ async function getReplyText(originalText) {
     var promptText = "You: Reply to the following tweet in a " + adder + " " + sentiment + " manner and include any similar hashtags: " + originalText + "\nMe:";
 
     if(getRandomInt(100) > 65) {
-        maxTokens = 42;
+        maxTokens = 40;
     } else {
         maxTokens = 45;
     }
