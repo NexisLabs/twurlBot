@@ -246,7 +246,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             console.log('Action 3.1 - groupReplyRate Triggered');
             var groupAccountToReply = loginArray[getRandomInt(loginArray.length)].username;
             await page.goto('https://twitter.com/' + groupAccountToReply);
-            await page.waitForTimeout(90000)
+            await page.waitForTimeout(60000)
             await checkForCookiesButton(page);
             let preGroupReplyHtml = await page.content();
             let groupReplyStatus1 = await searchString(preGroupReplyHtml, 'aria-label="Follow @' + groupAccountToReply);
@@ -272,7 +272,8 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    const replyTextBox = await page.$x('div[aria-label="Tweet text"]');
+                    //const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
                         await replyTextBox.click({ delay: 500 });
@@ -446,7 +447,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             console.log('Follower List Received - Length: ' + followerList.length);
             var randomAccountToReply = followerList[getRandomInt(followerList.length)].username;
             await page.goto('https://twitter.com/' + randomAccountToReply);
-            await page.waitForTimeout(90000)
+            await page.waitForTimeout(60000)
             await checkForCookiesButton(page);
             let preRandomReplyHtml = await page.content();
             let randomReplyStatus1 = await searchString(preRandomReplyHtml, 'aria-label="Follow @' + randomAccountToReply);
@@ -472,7 +473,8 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    const replyTextBox = await page.$x('div[aria-label="Tweet text"]');
+                    //const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
                         await replyTextBox.click({ delay: 500 });
@@ -632,7 +634,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             console.log('Action 9.1 - importantReplyRate Triggered');
             var importantAccountToReply = botData.importantTwitterAccounts[getRandomInt(botData.importantTwitterAccounts.length)];
             await page.goto('https://twitter.com/' + importantAccountToReply);
-            await page.waitForTimeout(90000)
+            await page.waitForTimeout(60000)
             await checkForCookiesButton(page);
             let preImportantReplyHtml = await page.content();
             let importantReplyStatus1 = await searchString(preImportantReplyHtml, 'aria-label="Follow ' + importantAccountToReply);
@@ -658,7 +660,8 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    const replyTextBox = await page.$x('div[aria-label="Tweet text"]');
+                    //const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
                         await replyTextBox.click({ delay: 500 });
