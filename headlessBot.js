@@ -272,7 +272,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const replyTextBox = await page.$x('div[aria-label="Tweet text"]');
+                    const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
                     //const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
@@ -473,7 +473,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const replyTextBox = await page.$x('div[aria-label="Tweet text"]');
+                    const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
                     //const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
@@ -660,7 +660,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original tweet text found - Text: ' + originalTweetText);
                     let replyText = await getReplyText(originalTweetText);
                     console.log('Reply text generated - Reply: ' + replyText);
-                    const replyTextBox = await page.$x('div[aria-label="Tweet text"]');
+                    const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
                     //const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
                     if (replyTextBox) {
                         console.log('Reply text box found');
