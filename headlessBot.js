@@ -128,6 +128,70 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         const actionConstant = 10000;
         await reportStatus('Login', 'success');
 
+        // actionFlag10 - For Account Tweets
+        try {
+        var actionFlag10 = getRandomInt(actionConstant);
+        if(actionFlag10 < (botData.standardTweetRate * actionConstant)) {
+            let tweetText = await getTweetText();
+            await page.goto('https://twitter.com/compose/tweet');
+            await page.waitForTimeout(20000)
+            await checkForCookiesButton(page);
+
+            const closeButtons = await page.$$('div[aria-label="Close"]');
+            if(closeButtons && closeButtons.length) {
+                console.log(closeButtons.length + ' close buttons found');
+                for(let i = 0; i < closeButtons.length; i++){
+                    console.log('Close button detected');
+                    await closeButtons[i].click();
+                    await page.waitForTimeout(5000)
+                    //console.log('Close button clicked');
+                    console.log('Close button clicked - Number: ' + i);
+                }
+            }
+            await page.goto('https://twitter.com/compose/tweet');
+            await page.waitForTimeout(20000)
+            await checkForCookiesButton(page);
+
+            const [maybeLaterButton] = await page.$x("//span[contains(., 'Maybe later')]");
+            if (maybeLaterButton) {
+                console.log('Maybe later button detected...clicking');
+                await maybeLaterButton.click();
+                await page.waitForTimeout(1000)
+            }
+
+            const [innactiveTweetButton] = await page.$x("//span[contains(., 'Tweet')]");
+            if (innactiveTweetButton) {
+                console.log('Innactive Tweet Button Found!');
+                await innactiveTweetButton.click();
+                await page.waitForTimeout(1000)
+            }
+            const [tweetTextBox] = await page.$x("//div[contains(., 'happening?')]");
+            if (tweetTextBox) {
+                console.log('Tweet text box found');
+                await tweetTextBox.click({ delay: 500 });
+                await tweetTextBox.type(tweetText, { delay: 200 });
+            }
+            console.log('Tweet text entered');
+            await page.waitForTimeout(5000)
+            await page.keyboard.press('Enter');
+            await page.waitForTimeout(5000)
+            await page.keyboard.press('Enter');
+            await page.waitForTimeout(5000)
+
+            const [tweetButton] = await page.$x("//span[contains(., 'Tweet')]");
+            if (tweetButton) {
+                console.log('Send Tweet Button Found!');
+                await tweetButton.click();
+            }
+            console.log('Tweet Sent!');
+            await reportStatus('10', 'success');
+            await page.waitForTimeout(10000)
+        }
+        }catch(err) {
+            console.log('10 Caught Error: ' + err);
+            await reportStatus('10', 'failed');
+        }
+
         // actionFlag1 - For Group Follows
         try {
         var actionFlag1 = getRandomInt(actionConstant);
@@ -702,70 +766,6 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         }catch(err) {
             console.log('9_1 Caught Error: ' + err);
             await reportStatus('9_1', 'failed');
-        }
-
-        // actionFlag10 - For Account Tweets
-        try {
-        var actionFlag10 = getRandomInt(actionConstant);
-        if(actionFlag10 < (botData.standardTweetRate * actionConstant)) {
-            let tweetText = await getTweetText();
-            await page.goto('https://twitter.com/compose/tweet');
-            await page.waitForTimeout(20000)
-            await checkForCookiesButton(page);
-
-            const closeButtons = await page.$$('div[aria-label="Close"]');
-            if(closeButtons && closeButtons.length) {
-                console.log(closeButtons.length + ' close buttons found');
-                for(let i = 0; i < closeButtons.length; i++){
-                    console.log('Close button detected');
-                    await closeButtons[i].click();
-                    await page.waitForTimeout(5000)
-                    //console.log('Close button clicked');
-                    console.log('Close button clicked - Number: ' + i);
-                }
-            }
-            await page.goto('https://twitter.com/compose/tweet');
-            await page.waitForTimeout(20000)
-            await checkForCookiesButton(page);
-
-            const [maybeLaterButton] = await page.$x("//span[contains(., 'Maybe later')]");
-            if (maybeLaterButton) {
-                console.log('Maybe later button detected...clicking');
-                await maybeLaterButton.click();
-                await page.waitForTimeout(1000)
-            }
-
-            const [innactiveTweetButton] = await page.$x("//span[contains(., 'Tweet')]");
-            if (innactiveTweetButton) {
-                console.log('Innactive Tweet Button Found!');
-                await innactiveTweetButton.click();
-                await page.waitForTimeout(1000)
-            }
-            const [tweetTextBox] = await page.$x("//div[contains(., 'happening?')]");
-            if (tweetTextBox) {
-                console.log('Tweet text box found');
-                await tweetTextBox.click({ delay: 500 });
-                await tweetTextBox.type(tweetText, { delay: 200 });
-            }
-            console.log('Tweet text entered');
-            await page.waitForTimeout(5000)
-            await page.keyboard.press('Enter');
-            await page.waitForTimeout(5000)
-            await page.keyboard.press('Enter');
-            await page.waitForTimeout(5000)
-
-            const [tweetButton] = await page.$x("//span[contains(., 'Tweet')]");
-            if (tweetButton) {
-                console.log('Send Tweet Button Found!');
-                await tweetButton.click();
-            }
-            console.log('Tweet Sent!');
-            await reportStatus('10', 'success');
-            await page.waitForTimeout(10000)
-        }
-        }catch(err) {
-            console.log('10 Caught Error: ' + err);
-            await reportStatus('10', 'failed');
         }
     } else if(phoneVerifyStatus){
         console.log('Phone number verification needed');
