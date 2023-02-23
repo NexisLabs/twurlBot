@@ -33,11 +33,11 @@ async function start() {
 }
 
 // random delay, then start running!
-let randomDelay = getRandomInt(300000);
-console.log('Delaying runtime by ' + (randomDelay/1000) + ' seconds');
-setTimeout(() => {
+//let randomDelay = getRandomInt(300000);
+//console.log('Delaying runtime by ' + (randomDelay/1000) + ' seconds');
+//setTimeout(() => {
     start();
-}, randomDelay)
+//}, randomDelay)
 
 const decryptWithAES = (ciphertext, passphrase) => {
   const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase);
