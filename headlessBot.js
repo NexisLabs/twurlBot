@@ -197,6 +197,9 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         var actionFlag3_1 = getRandomInt(actionConstant);
         if(actionFlag3_1 < (botData.groupReplyRate * actionConstant)) {
             console.log('Action 3.1 - groupReplyRate Triggered');
+            var loopCount = 5;
+            while(loopCount > 0) {
+            loopCount--;
             var groupAccountToReply = loginArray[getRandomInt(loginArray.length)].username;
             await page.goto('https://twitter.com/' + groupAccountToReply);
             await page.waitForTimeout(60000)
@@ -249,6 +252,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                             console.log('Reply Sent!');
                             await reportStatus('3_1', 'success');
                             await page.waitForTimeout(10000)
+                            break;
                         } else {
                             console.log('Send Reply Button Not Found');
                             await reportStatus('3_1', 'failed');
@@ -265,6 +269,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                 console.log('Reply Buttons Not Found For ' + groupAccountToReply);
                 await reportStatus('3_1', 'failed');
             }
+            } // end of while
         }
         }catch(err) {
             console.log('3_1 Caught Error: ' + err);
@@ -278,6 +283,10 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             console.log('Action 6.1 - randomReplyRate Triggered');
             let followerList = await getFollowerList();
             console.log('Follower List Received - Length: ' + followerList.length);
+
+            var loopCount = 5;
+            while(loopCount > 0) {
+            loopCount--;
             var randomAccountToReply = followerList[getRandomInt(followerList.length)].username;
             await page.goto('https://twitter.com/' + randomAccountToReply);
             await page.waitForTimeout(60000)
@@ -326,7 +335,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                             console.log('Reply Sent!');
                             await reportStatus('6_1', 'success');
                             await page.waitForTimeout(10000)
-
+                            break;
                         } else {
                             console.log('Send Reply Button Not Found');
                             await reportStatus('6_1', 'failed');
@@ -339,6 +348,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original Text Text Not Found');
                     await reportStatus('6_1', 'failed');
                 }
+                } // end of while loop
             } else {
                 console.log('Reply Buttons Not Found For ' + randomAccountToReply);
                 await reportStatus('6_1', 'failed');
@@ -354,6 +364,9 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         var actionFlag9_1 = getRandomInt(actionConstant);
         if(actionFlag9_1 < (botData.importantReplyRate * actionConstant)) {
             console.log('Action 9.1 - importantReplyRate Triggered');
+            var loopCount = 5;
+            while(loopCount > 0) {
+            loopCount--;
             var importantAccountToReply = botData.importantTwitterAccounts[getRandomInt(botData.importantTwitterAccounts.length)];
             await page.goto('https://twitter.com/' + importantAccountToReply);
             await page.waitForTimeout(60000)
@@ -402,7 +415,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                             console.log('Reply Sent!');
                             await reportStatus('9_1', 'success');
                             await page.waitForTimeout(10000)
-
+                            break;
                         } else {
                             console.log('Send Reply Button Not Found');
                             await reportStatus('9_1', 'failed');
@@ -419,6 +432,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                 console.log('Reply Buttons Not Found For ' + importantAccountToReply);
                 await reportStatus('9_1', 'failed');
             }
+            } // end of while loop
         }
         }catch(err) {
             console.log('9_1 Caught Error: ' + err);
