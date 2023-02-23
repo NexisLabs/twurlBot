@@ -348,11 +348,11 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
                     console.log('Original Text Text Not Found');
                     await reportStatus('6_1', 'failed');
                 }
-                } // end of while loop
             } else {
                 console.log('Reply Buttons Not Found For ' + randomAccountToReply);
                 await reportStatus('6_1', 'failed');
             }
+            } // end of while loop
         }
         }catch(err) {
             console.log('6_1 Caught Error: ' + err);
