@@ -192,6 +192,239 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             await reportStatus('10', 'failed');
         }
 
+        // actionFlag3.1 - For Group Replies
+        try {
+        var actionFlag3_1 = getRandomInt(actionConstant);
+        if(actionFlag3_1 < (botData.groupReplyRate * actionConstant)) {
+            console.log('Action 3.1 - groupReplyRate Triggered');
+            var groupAccountToReply = loginArray[getRandomInt(loginArray.length)].username;
+            await page.goto('https://twitter.com/' + groupAccountToReply);
+            await page.waitForTimeout(60000)
+            await checkForCookiesButton(page);
+            let preGroupReplyHtml = await page.content();
+            let groupReplyStatus1 = await searchString(preGroupReplyHtml, 'aria-label="Follow @' + groupAccountToReply);
+            let groupReplyStatus2 = await searchString(preGroupReplyHtml, 'aria-label="Following @' + groupAccountToReply);
+            var groupReplyButtons = await page.$$('div[data-testid="reply"]');
+            await page.waitForTimeout(10000)
+            if(groupReplyButtons && (groupReplyStatus1 || groupReplyStatus2)) {
+                console.log('Group reply buttons detection successful - Count: ' + groupReplyButtons.length);
+                var upperLimit = 5;
+                if(groupReplyButtons.length < 5) { upperLimit = groupReplyButtons.length; }
+                let randomReply = getRandomInt(upperLimit);
+                await page.waitForTimeout(10000);
+                await groupReplyButtons[randomReply].click({delay: 5000});
+                console.log('Successfully clicked group reply button - Index: ' + randomReply);
+                await page.waitForTimeout(30000);
+
+                const tweetTextArray = await page.evaluate(() => {
+                    const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
+                    return tds.map(td => td.textContent)
+                });
+                const originalTweetText = tweetTextArray[randomReply + 1];
+                if(originalTweetText) {
+                    console.log('Original tweet text found - Text: ' + originalTweetText);
+                    let replyText = await getReplyText(originalTweetText);
+                    console.log('Reply text generated - Reply: ' + replyText);
+                    //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
+                    //const [tweetTextBox] = await page.$x("//div[contains(., 'happeni')]");
+                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    if (replyTextBox) {
+                        console.log('Reply text box found');
+                        await replyTextBox.click({ delay: 500 });
+                        await replyTextBox.type(replyText, { delay: 200 });
+                        console.log('Reply text entered');
+                        await page.waitForTimeout(10000)
+                        await page.keyboard.press('Enter');
+                        await page.waitForTimeout(10000)
+                        await page.keyboard.press('Enter');
+                        await page.waitForTimeout(30000)
+
+                        //const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
+                        const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
+                        //const replyButton = await page.$x('div[data-testid="tweetButton"]');
+                        // data-testid="tweetButton"
+                        if (replyButton) {
+                            console.log('Send Reply Button Found!');
+                            await replyButton.click();
+                            console.log('Reply Sent!');
+                            await reportStatus('3_1', 'success');
+                            await page.waitForTimeout(10000)
+                        } else {
+                            console.log('Send Reply Button Not Found');
+                            await reportStatus('3_1', 'failed');
+                        }
+                    } else {
+                        console.log('Reply Text Box Not Found');
+                        await reportStatus('3_1', 'failed');
+                    }
+                } else {
+                    console.log('Original Text Not Found');
+                    await reportStatus('3_1', 'failed');
+                }
+            } else {
+                console.log('Reply Buttons Not Found For ' + groupAccountToReply);
+                await reportStatus('3_1', 'failed');
+            }
+        }
+        }catch(err) {
+            console.log('3_1 Caught Error: ' + err);
+            await reportStatus('3_1', 'failed');
+        }
+
+        // actionFlag6.1 - For Random Replies
+        try {
+        var actionFlag6_1 = getRandomInt(actionConstant);
+        if(actionFlag6_1 < (botData.randomReplyRate * actionConstant)) {
+            console.log('Action 6.1 - randomReplyRate Triggered');
+            let followerList = await getFollowerList();
+            console.log('Follower List Received - Length: ' + followerList.length);
+            var randomAccountToReply = followerList[getRandomInt(followerList.length)].username;
+            await page.goto('https://twitter.com/' + randomAccountToReply);
+            await page.waitForTimeout(60000)
+            await checkForCookiesButton(page);
+            let preRandomReplyHtml = await page.content();
+            let randomReplyStatus1 = await searchString(preRandomReplyHtml, 'aria-label="Follow @' + randomAccountToReply);
+            let randomReplyStatus2 = await searchString(preRandomReplyHtml, 'aria-label="Following @' + randomAccountToReply);
+            var randomReplyButtons = await page.$$('div[data-testid="reply"]');
+            await page.waitForTimeout(10000)
+            if(randomReplyButtons && (randomReplyStatus1 || randomReplyStatus2)) {
+                console.log('Random reply buttons detection successful - Count: ' + randomReplyButtons.length);
+                var upperLimit = 5;
+                if(randomReplyButtons.length < 5) { upperLimit = randomReplyButtons.length; }
+                let randomReply = getRandomInt(upperLimit);
+                await page.waitForTimeout(10000);
+                await randomReplyButtons[randomReply].click({delay: 5000});
+                console.log('Successfully clicked random reply button - Index: ' + randomReply);
+                await page.waitForTimeout(30000);
+
+                const tweetTextArray = await page.evaluate(() => {
+                    const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
+                    return tds.map(td => td.textContent)
+                });
+                const originalTweetText = tweetTextArray[randomReply + 1];
+                if(originalTweetText) {
+                    console.log('Original tweet text found - Text: ' + originalTweetText);
+                    let replyText = await getReplyText(originalTweetText);
+                    console.log('Reply text generated - Reply: ' + replyText);
+                    //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
+                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    if (replyTextBox) {
+                        console.log('Reply text box found');
+                        await replyTextBox.click({ delay: 500 });
+                        await replyTextBox.type(replyText, { delay: 200 });
+                        console.log('Reply text entered');
+                        await page.waitForTimeout(10000)
+                        await page.keyboard.press('Enter');
+                        await page.waitForTimeout(10000)
+                        await page.keyboard.press('Enter');
+                        await page.waitForTimeout(30000)
+                        //const replyButton = await page.$x('div[data-testid="tweetButton"]');
+                        const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
+                        if (replyButton) {
+                            console.log('Send Reply Button Found!');
+                            await replyButton.click();
+                            console.log('Reply Sent!');
+                            await reportStatus('6_1', 'success');
+                            await page.waitForTimeout(10000)
+
+                        } else {
+                            console.log('Send Reply Button Not Found');
+                            await reportStatus('6_1', 'failed');
+                        }
+                    } else {
+                        console.log('Reply Text Box Not Found');
+                        await reportStatus('6_1', 'failed');
+                    }
+                } else {
+                    console.log('Original Text Text Not Found');
+                    await reportStatus('6_1', 'failed');
+                }
+            } else {
+                console.log('Reply Buttons Not Found For ' + randomAccountToReply);
+                await reportStatus('6_1', 'failed');
+            }
+        }
+        }catch(err) {
+            console.log('6_1 Caught Error: ' + err);
+            await reportStatus('6_1', 'failed');
+        }
+
+        // actionFlag9.1 - For Important Replies
+        try {
+        var actionFlag9_1 = getRandomInt(actionConstant);
+        if(actionFlag9_1 < (botData.importantReplyRate * actionConstant)) {
+            console.log('Action 9.1 - importantReplyRate Triggered');
+            var importantAccountToReply = botData.importantTwitterAccounts[getRandomInt(botData.importantTwitterAccounts.length)];
+            await page.goto('https://twitter.com/' + importantAccountToReply);
+            await page.waitForTimeout(60000)
+            await checkForCookiesButton(page);
+            let preImportantReplyHtml = await page.content();
+            let importantReplyStatus1 = await searchString(preImportantReplyHtml, 'aria-label="Follow ' + importantAccountToReply);
+            let importantReplyStatus2 = await searchString(preImportantReplyHtml, 'aria-label="Following ' + importantAccountToReply);
+            var importantReplyButtons = await page.$$('div[data-testid="reply"]');
+            await page.waitForTimeout(10000)
+            if(importantReplyButtons && (importantReplyStatus1 || importantReplyStatus2)) {
+                console.log('Important reply buttons detection successful - Count: ' + importantReplyButtons.length);
+                var upperLimit = 5;
+                if(importantReplyButtons.length < 5) { upperLimit = importantReplyButtons.length; }
+                let randomReply = getRandomInt(upperLimit);
+                await page.waitForTimeout(10000);
+                await importantReplyButtons[randomReply].click({delay: 5000});
+                console.log('Successfully clicked important reply button - Index: ' + randomReply);
+                await page.waitForTimeout(30000);
+
+                const tweetTextArray = await page.evaluate(() => {
+                    const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
+                    return tds.map(td => td.textContent)
+                });
+                const originalTweetText = tweetTextArray[randomReply + 1];
+                if(originalTweetText) {
+                    console.log('Original tweet text found - Text: ' + originalTweetText);
+                    let replyText = await getReplyText(originalTweetText);
+                    console.log('Reply text generated - Reply: ' + replyText);
+                    //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
+                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
+                    if (replyTextBox) {
+                        console.log('Reply text box found');
+                        await replyTextBox.click({ delay: 500 });
+                        await replyTextBox.type(replyText, { delay: 200 });
+                        console.log('Reply text entered');
+                        await page.waitForTimeout(10000)
+                        await page.keyboard.press('Enter');
+                        await page.waitForTimeout(10000)
+                        await page.keyboard.press('Enter');
+                        await page.waitForTimeout(30000)
+                        //const replyButton = await page.$x('div[data-testid="tweetButton"]');
+                        const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
+                        if (replyButton) {
+                            console.log('Send Reply Button Found!');
+                            await replyButton.click();
+                            console.log('Reply Sent!');
+                            await reportStatus('9_1', 'success');
+                            await page.waitForTimeout(10000)
+
+                        } else {
+                            console.log('Send Reply Button Not Found');
+                            await reportStatus('9_1', 'failed');
+                        }
+                    } else {
+                        console.log('Reply Text Box Not Found');
+                        await reportStatus('9_1', 'failed');
+                    }
+                } else {
+                    console.log('Original Text Text Not Found');
+                    await reportStatus('9_1', 'failed');
+                }
+            } else {
+                console.log('Reply Buttons Not Found For ' + importantAccountToReply);
+                await reportStatus('9_1', 'failed');
+            }
+        }
+        }catch(err) {
+            console.log('9_1 Caught Error: ' + err);
+            await reportStatus('9_1', 'failed');
+        }
+
         // actionFlag1 - For Group Follows
         try {
         var actionFlag1 = getRandomInt(actionConstant);
@@ -301,85 +534,6 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         }catch(err) {
             console.log('3 Caught Error: ' + err);
             await reportStatus('3', 'failed');
-        }
-
-        // actionFlag3.1 - For Group Replies
-        try {
-        var actionFlag3_1 = getRandomInt(actionConstant);
-        if(actionFlag3_1 < (botData.groupReplyRate * actionConstant)) {
-            console.log('Action 3.1 - groupReplyRate Triggered');
-            var groupAccountToReply = loginArray[getRandomInt(loginArray.length)].username;
-            await page.goto('https://twitter.com/' + groupAccountToReply);
-            await page.waitForTimeout(60000)
-            await checkForCookiesButton(page);
-            let preGroupReplyHtml = await page.content();
-            let groupReplyStatus1 = await searchString(preGroupReplyHtml, 'aria-label="Follow @' + groupAccountToReply);
-            let groupReplyStatus2 = await searchString(preGroupReplyHtml, 'aria-label="Following @' + groupAccountToReply);
-            var groupReplyButtons = await page.$$('div[data-testid="reply"]');
-            await page.waitForTimeout(10000)
-            if(groupReplyButtons && (groupReplyStatus1 || groupReplyStatus2)) {
-                console.log('Group reply buttons detection successful - Count: ' + groupReplyButtons.length);
-                var upperLimit = 5;
-                if(groupReplyButtons.length < 5) { upperLimit = groupReplyButtons.length; }
-                let randomReply = getRandomInt(upperLimit);
-                await page.waitForTimeout(10000);
-                await groupReplyButtons[randomReply].click({delay: 5000});
-                console.log('Successfully clicked group reply button - Index: ' + randomReply);
-                await page.waitForTimeout(30000);
-
-                const tweetTextArray = await page.evaluate(() => {
-                    const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
-                    return tds.map(td => td.textContent)
-                });
-                const originalTweetText = tweetTextArray[randomReply + 1];
-                if(originalTweetText) {
-                    console.log('Original tweet text found - Text: ' + originalTweetText);
-                    let replyText = await getReplyText(originalTweetText);
-                    console.log('Reply text generated - Reply: ' + replyText);
-                    //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
-                    //const [tweetTextBox] = await page.$x("//div[contains(., 'happeni')]");
-                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
-                    if (replyTextBox) {
-                        console.log('Reply text box found');
-                        await replyTextBox.click({ delay: 500 });
-                        await replyTextBox.type(replyText, { delay: 200 });
-                        console.log('Reply text entered');
-                        await page.waitForTimeout(10000)
-                        await page.keyboard.press('Enter');
-                        await page.waitForTimeout(10000)
-                        await page.keyboard.press('Enter');
-                        await page.waitForTimeout(30000)
-
-                        //const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
-                        const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
-                        //const replyButton = await page.$x('div[data-testid="tweetButton"]');
-                        // data-testid="tweetButton"
-                        if (replyButton) {
-                            console.log('Send Reply Button Found!');
-                            await replyButton.click();
-                            console.log('Reply Sent!');
-                            await reportStatus('3_1', 'success');
-                            await page.waitForTimeout(10000)
-                        } else {
-                            console.log('Send Reply Button Not Found');
-                            await reportStatus('3_1', 'failed');
-                        }
-                    } else {
-                        console.log('Reply Text Box Not Found');
-                        await reportStatus('3_1', 'failed');
-                    }
-                } else {
-                    console.log('Original Text Not Found');
-                    await reportStatus('3_1', 'failed');
-                }
-            } else {
-                console.log('Reply Buttons Not Found For ' + groupAccountToReply);
-                await reportStatus('3_1', 'failed');
-            }
-        }
-        }catch(err) {
-            console.log('3_1 Caught Error: ' + err);
-            await reportStatus('3_1', 'failed');
         }
 
         // actionFlag4 - For Random Follow
@@ -503,84 +657,6 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             await reportStatus('6', 'failed');
         }
 
-        // actionFlag6.1 - For Random Replies
-        try {
-        var actionFlag6_1 = getRandomInt(actionConstant);
-        if(actionFlag6_1 < (botData.randomReplyRate * actionConstant)) {
-            console.log('Action 6.1 - randomReplyRate Triggered');
-            let followerList = await getFollowerList();
-            console.log('Follower List Received - Length: ' + followerList.length);
-            var randomAccountToReply = followerList[getRandomInt(followerList.length)].username;
-            await page.goto('https://twitter.com/' + randomAccountToReply);
-            await page.waitForTimeout(60000)
-            await checkForCookiesButton(page);
-            let preRandomReplyHtml = await page.content();
-            let randomReplyStatus1 = await searchString(preRandomReplyHtml, 'aria-label="Follow @' + randomAccountToReply);
-            let randomReplyStatus2 = await searchString(preRandomReplyHtml, 'aria-label="Following @' + randomAccountToReply);
-            var randomReplyButtons = await page.$$('div[data-testid="reply"]');
-            await page.waitForTimeout(10000)
-            if(randomReplyButtons && (randomReplyStatus1 || randomReplyStatus2)) {
-                console.log('Random reply buttons detection successful - Count: ' + randomReplyButtons.length);
-                var upperLimit = 5;
-                if(randomReplyButtons.length < 5) { upperLimit = randomReplyButtons.length; }
-                let randomReply = getRandomInt(upperLimit);
-                await page.waitForTimeout(10000);
-                await randomReplyButtons[randomReply].click({delay: 5000});
-                console.log('Successfully clicked random reply button - Index: ' + randomReply);
-                await page.waitForTimeout(30000);
-
-                const tweetTextArray = await page.evaluate(() => {
-                    const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
-                    return tds.map(td => td.textContent)
-                });
-                const originalTweetText = tweetTextArray[randomReply + 1];
-                if(originalTweetText) {
-                    console.log('Original tweet text found - Text: ' + originalTweetText);
-                    let replyText = await getReplyText(originalTweetText);
-                    console.log('Reply text generated - Reply: ' + replyText);
-                    //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
-                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
-                    if (replyTextBox) {
-                        console.log('Reply text box found');
-                        await replyTextBox.click({ delay: 500 });
-                        await replyTextBox.type(replyText, { delay: 200 });
-                        console.log('Reply text entered');
-                        await page.waitForTimeout(10000)
-                        await page.keyboard.press('Enter');
-                        await page.waitForTimeout(10000)
-                        await page.keyboard.press('Enter');
-                        await page.waitForTimeout(30000)
-                        //const replyButton = await page.$x('div[data-testid="tweetButton"]');
-                        const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
-                        if (replyButton) {
-                            console.log('Send Reply Button Found!');
-                            await replyButton.click();
-                            console.log('Reply Sent!');
-                            await reportStatus('6_1', 'success');
-                            await page.waitForTimeout(10000)
-
-                        } else {
-                            console.log('Send Reply Button Not Found');
-                            await reportStatus('6_1', 'failed');
-                        }
-                    } else {
-                        console.log('Reply Text Box Not Found');
-                        await reportStatus('6_1', 'failed');
-                    }
-                } else {
-                    console.log('Original Text Text Not Found');
-                    await reportStatus('6_1', 'failed');
-                }
-            } else {
-                console.log('Reply Buttons Not Found For ' + randomAccountToReply);
-                await reportStatus('6_1', 'failed');
-            }
-        }
-        }catch(err) {
-            console.log('6_1 Caught Error: ' + err);
-            await reportStatus('6_1', 'failed');
-        }
-
         // actionFlag7 - For Important Account Follow
         try {
         var actionFlag7 = getRandomInt(actionConstant);
@@ -690,82 +766,6 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         }catch(err) {
             console.log('9 Caught Error: ' + err);
             await reportStatus('9', 'failed');
-        }
-
-        // actionFlag9.1 - For Important Replies
-        try {
-        var actionFlag9_1 = getRandomInt(actionConstant);
-        if(actionFlag9_1 < (botData.importantReplyRate * actionConstant)) {
-            console.log('Action 9.1 - importantReplyRate Triggered');
-            var importantAccountToReply = botData.importantTwitterAccounts[getRandomInt(botData.importantTwitterAccounts.length)];
-            await page.goto('https://twitter.com/' + importantAccountToReply);
-            await page.waitForTimeout(60000)
-            await checkForCookiesButton(page);
-            let preImportantReplyHtml = await page.content();
-            let importantReplyStatus1 = await searchString(preImportantReplyHtml, 'aria-label="Follow ' + importantAccountToReply);
-            let importantReplyStatus2 = await searchString(preImportantReplyHtml, 'aria-label="Following ' + importantAccountToReply);
-            var importantReplyButtons = await page.$$('div[data-testid="reply"]');
-            await page.waitForTimeout(10000)
-            if(importantReplyButtons && (importantReplyStatus1 || importantReplyStatus2)) {
-                console.log('Important reply buttons detection successful - Count: ' + importantReplyButtons.length);
-                var upperLimit = 5;
-                if(importantReplyButtons.length < 5) { upperLimit = importantReplyButtons.length; }
-                let randomReply = getRandomInt(upperLimit);
-                await page.waitForTimeout(10000);
-                await importantReplyButtons[randomReply].click({delay: 5000});
-                console.log('Successfully clicked important reply button - Index: ' + randomReply);
-                await page.waitForTimeout(30000);
-
-                const tweetTextArray = await page.evaluate(() => {
-                    const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
-                    return tds.map(td => td.textContent)
-                });
-                const originalTweetText = tweetTextArray[randomReply + 1];
-                if(originalTweetText) {
-                    console.log('Original tweet text found - Text: ' + originalTweetText);
-                    let replyText = await getReplyText(originalTweetText);
-                    console.log('Reply text generated - Reply: ' + replyText);
-                    //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
-                    const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
-                    if (replyTextBox) {
-                        console.log('Reply text box found');
-                        await replyTextBox.click({ delay: 500 });
-                        await replyTextBox.type(replyText, { delay: 200 });
-                        console.log('Reply text entered');
-                        await page.waitForTimeout(10000)
-                        await page.keyboard.press('Enter');
-                        await page.waitForTimeout(10000)
-                        await page.keyboard.press('Enter');
-                        await page.waitForTimeout(30000)
-                        //const replyButton = await page.$x('div[data-testid="tweetButton"]');
-                        const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
-                        if (replyButton) {
-                            console.log('Send Reply Button Found!');
-                            await replyButton.click();
-                            console.log('Reply Sent!');
-                            await reportStatus('9_1', 'success');
-                            await page.waitForTimeout(10000)
-
-                        } else {
-                            console.log('Send Reply Button Not Found');
-                            await reportStatus('9_1', 'failed');
-                        }
-                    } else {
-                        console.log('Reply Text Box Not Found');
-                        await reportStatus('9_1', 'failed');
-                    }
-                } else {
-                    console.log('Original Text Text Not Found');
-                    await reportStatus('9_1', 'failed');
-                }
-            } else {
-                console.log('Reply Buttons Not Found For ' + importantAccountToReply);
-                await reportStatus('9_1', 'failed');
-            }
-        }
-        }catch(err) {
-            console.log('9_1 Caught Error: ' + err);
-            await reportStatus('9_1', 'failed');
         }
     } else if(phoneVerifyStatus){
         console.log('Phone number verification needed');
