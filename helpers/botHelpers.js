@@ -57,7 +57,7 @@ async function getTweetText() {
     //} else {
     //    maxTokens = 45;
     //}
-    maxTokens = getRandomIntBetween(20, 46);
+    maxTokens = getRandomIntBetween(13, 46);
 
         const openai = new OpenAIApi(configuration);
         const response = await openai.createCompletion({
@@ -114,7 +114,7 @@ async function getReplyText(originalText) {
     } else {
         maxTokens = 45;
     }*/
-    maxTokens = getRandomIntBetween(20, 46);
+    maxTokens = getRandomIntBetween(13, 46);
 
     const openai = new OpenAIApi(configuration);
     const response = await openai.createCompletion({
