@@ -52,14 +52,17 @@ async function getTweetText() {
         promptText = "You: " + requestStatement + " using a " + adder + " " + sentiment + " tone\nMe:";
     }
 
-    if(getRandomInt(100) > 65) {
-        maxTokens = 40;
-    } else {
-        maxTokens = 45;
-    }
+    //if(getRandomInt(100) > 65) {
+    //    maxTokens = 40;
+    //} else {
+    //    maxTokens = 45;
+    //}
+    maxTokens = getRandomIntBetween(20, 46);
+
         const openai = new OpenAIApi(configuration);
         const response = await openai.createCompletion({
           model: "text-davinci-003",
+          //model: "text-curie-001",
           prompt: promptText,
           temperature: 1.0,
           max_tokens: maxTokens,
@@ -72,7 +75,9 @@ async function getTweetText() {
 
         tagArray = selectTags(getRandomIntBetween(1, 3));
         var sendText;
-        if(maxTokens == 40) {
+        //if(maxTokens == 40) {
+        var mediaFlag = getRandomInt(100);
+        if(maxTokens <= 40 && mediaFlag <= 50) {
             //tweetMediaLink = await generateTweetMedia(response.data.choices[0].text);
             tweetMediaLink = await generateTweetMedia(aiResponseText);
             console.log('Adding media link to tweet text: ' + tweetMediaLink);
@@ -104,14 +109,17 @@ async function getReplyText(originalText) {
 
     var promptText = "You: Reply to the following tweet in a " + adder + " " + sentiment + " manner and include any similar hashtags: " + originalText + "\nMe:";
 
-    if(getRandomInt(100) > 65) {
+    /*if(getRandomInt(100) > 65) {
         maxTokens = 40;
     } else {
         maxTokens = 45;
-    }
+    }*/
+    maxTokens = getRandomIntBetween(20, 46);
+
     const openai = new OpenAIApi(configuration);
     const response = await openai.createCompletion({
       model: "text-davinci-003",
+      //model: "text-curie-001",
       prompt: promptText,
       temperature: 1.0,
       max_tokens: maxTokens,
@@ -124,7 +132,9 @@ async function getReplyText(originalText) {
 
     //console.log(response);
     var replyText;
-    if(maxTokens == 40) {
+    //if(maxTokens == 40) {
+    var mediaFlag = getRandomInt(100);
+    if(maxTokens <= 40 && mediaFlag <= 50) {
         replyMediaLink = await generateTweetMedia(aiResponseText);
         console.log('Adding media link to tweet text: ' + replyMediaLink);
         replyText = aiResponseText + ' ' + replyMediaLink;
