@@ -1,4 +1,4 @@
-const { reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('/home/twitbot/twurlBot/helpers/botHelpers.js');
+const { getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('/home/twitbot/twurlBot/helpers/botHelpers.js');
 const {Client } = require("pg");
 const axios = require('axios');
 const http = require('https');
@@ -10,6 +10,7 @@ const puppeteer = require('puppeteer-extra')
 const request = require("request");
 const CryptoJS = require('crypto-js');
 const phoneapikey = '31L4HGaqnv1SDgc-4mJL9CYC-Hwbm64hn-9mrsaL25-amw4v1dtdHmhvNg';
+const profilesPath = '/mnt/blockstorage/twitbot/profileScraping/instagramProfiles/';
 
 //const botData = require('/home/twitbot/twurlBot/botData.json');
 //const tags = botData.tags;
@@ -28,7 +29,13 @@ async function start() {
 
     loginArray = await getRemoteLogins();
     let randomAccount = loginArray[getRandomInt(loginArray.length)];
-    await twitterLogin(randomAccount.username, randomAccount.password, randomAccount.email, randomAccount.useragent, randomAccount.proxy);
+    let imageProfileName = await getImageProfile(randomAccount.email);
+    if(imageProfileName != false) {
+        console.log('Image Profile: ' + imageProfileName);
+    } else {
+        console.log('Image Profile Not Found');
+    }
+    await twitterLogin(imageProfileName, randomAccount.username, randomAccount.password, randomAccount.email, randomAccount.useragent, randomAccount.proxy);
     process.exit(0);
 }
 
@@ -53,7 +60,7 @@ async function gracefulExit(browser, proxyChain, proxyUrl, message) {
     process.exit(1);
 }
 
-async function twitterLogin (username, password, email, useragent, proxyString) {
+async function twitterLogin (imageProfileName, username, password, email, useragent, proxyString) {
     console.log('Account Selected: ' + username);
     console.log('Proxy Selected: ' + proxyString);
 
@@ -132,7 +139,6 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         try {
         var actionFlag10 = getRandomInt(actionConstant);
         if(actionFlag10 < (botData.standardTweetRate * actionConstant)) {
-            let tweetText = await getTweetText();
             await page.goto('https://twitter.com/compose/tweet');
             await page.waitForTimeout(20000)
             await checkForCookiesButton(page);
@@ -169,7 +175,42 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
             if (tweetTextBox) {
                 console.log('Tweet text box found');
                 await tweetTextBox.click({ delay: 500 });
-                await tweetTextBox.type(tweetText, { delay: 200 });
+                let pictureFlag = getRandomInt(100);
+                //if(true) {
+                if(imageProfileName != false && pictureFlag >= 90) {
+                    try{
+                        let randomImage = getRandomImage(imageProfileName);
+                        if(randomImage != false) {
+                            //var imageUploadInput = await page.$x('input[data-testid="fileInput"]');
+                            var imageUploadButton = await page.$('div[aria-label="Add photos or video"]');
+                            if(imageUploadButton) {
+                                console.log('Image Upload Button Found!');
+                                const imageInput = await page.evaluateHandle(el => el.nextElementSibling, imageUploadButton);
+                                await imageInput.uploadFile(randomImage);
+                                console.log('Image upload successful');
+                                await reportStatus('ImageUpload', 'success');
+                            } else {
+                                await reportStatus('ImageUpload', 'failed');
+                                console.log('Image upload failed - image upload button');
+                                let tweetText = await getTweetText();
+                                await tweetTextBox.type(tweetText, { delay: 200 });
+                            }
+                        } else {
+                            console.log('Image upload failed - randomImage');
+                            await reportStatus('ImageUpload', 'failed');
+                            let tweetText = await getTweetText();
+                            await tweetTextBox.type(tweetText, { delay: 200 });
+                        }
+                    }catch(err) {
+                        console.log('Image upload failed - catch block');
+                        await reportStatus('ImageUpload', 'failed');
+                        let tweetText = await getTweetText();
+                        await tweetTextBox.type(tweetText, { delay: 200 });
+                    }
+                } else {
+                    let tweetText = await getTweetText();
+                    await tweetTextBox.type(tweetText, { delay: 200 });
+                }
             }
             console.log('Tweet text entered');
             await page.waitForTimeout(5000)
@@ -957,5 +998,16 @@ async function customWaitForText(page, text, seconds, customName) {
                 resolve(false);
             });
         }
+    }
+}
+function getRandomImage(profile) {
+    const profilePath = profilesPath + profile;
+    const images = fs.readdirSync(profilePath + '/images');
+    if(!images || images.length < 5) {
+        console.log('Invalid images...exiting');
+        return false;
+        //process.exit(1);
+    } else {
+        return profilePath + '/images/' + images[getRandomInt(images.length)];
     }
 }

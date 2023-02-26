@@ -72,6 +72,7 @@ async function getTweetText() {
         });
         let aiResponse = await response;
         let aiResponseText = aiResponse.data.choices[0].text;
+        await recordTweet(promptText, aiResponseText);
 
         tagArray = selectTags(getRandomIntBetween(1, 3));
         var sendText;
@@ -129,6 +130,7 @@ async function getReplyText(originalText) {
     });
     let aiResponse = await response;
     let aiResponseText = aiResponse.data.choices[0].text;
+    await recordReply(promptText, aiResponseText);
 
     //console.log(response);
     var replyText;
@@ -524,4 +526,84 @@ function getRemoteBotData() {
     });
   });
 }
-module.exports = { reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword }
+async function getImageProfile(username) {
+  const client = new Client({
+    connectionString: databaseUrl,
+    application_name: "profileScraperAdd"
+  });
+  try {
+    await client.connect();
+    let statement = "CREATE TABLE IF NOT EXISTS twitterProfiles (id SERIAL PRIMARY KEY, username STRING, profilename STRING, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+    let result = await client.query(statement);
+    statement = "SELECT * FROM twitterProfiles WHERE username = '" + username + "'";
+    result = await client.query(statement);
+    if (result.rowCount > 0) {
+        console.log('Existing user entry found in database');
+        await client.end();
+        return new Promise((resolve, reject) => {
+            resolve(result.rows[0].profilename);
+        });
+    } else {
+        console.log('No user entry found in database');
+        await client.end();
+        return new Promise((resolve, reject) => {
+            resolve(false);
+        });
+    }
+  } catch (err) {
+    console.log(`error connecting: ${err}`);
+  }
+}
+async function recordTweet(input, output) {
+    input = input.replace("'", "");
+    output = output.replace("'", "");
+    console.log('Recording OpenAI Tweet Data - Input: ' + input + ' Output: ' + output);
+    const client = new Client({
+        connectionString: databaseUrl,
+        application_name: "twitBotAI"
+    });
+
+  try {
+    await client.connect();
+    let statement = "CREATE TABLE IF NOT EXISTS openai_tweet_tracking (input STRING, output STRING, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+    let result = await client.query(statement);
+    statement = "INSERT INTO openai_tweet_tracking (input, output) VALUES ('" + input + "', '" + output + "')";
+    result = await client.query(statement);
+    await client.end();
+    return new Promise((resolve, reject) => {
+        resolve(true);
+    });
+  } catch (err) {
+    console.log(`error connecting: ${err}`);
+    return new Promise((resolve, reject) => {
+        resolve(false);
+    });
+  }
+}
+async function recordReply(input, output) {
+    input = input.replace("'", "");
+    output = output.replace("'", "");
+    console.log('Recording OpenAI Reply Data - Input: ' + input + ' Output: ' + output);
+    const client = new Client({
+        connectionString: databaseUrl,
+        application_name: "twitBotAI"
+    });
+
+  try {
+    await client.connect();
+    let statement = "CREATE TABLE IF NOT EXISTS openai_reply_tracking (input STRING, output STRING, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+    let result = await client.query(statement);
+    statement = "INSERT INTO openai_reply_tracking (input, output) VALUES ('" + input + "', '" + output + "')";
+    result = await client.query(statement);
+    await client.end();
+    return new Promise((resolve, reject) => {
+        resolve(true);
+    });
+  } catch (err) {
+    console.log(`error connecting: ${err}`);
+    return new Promise((resolve, reject) => {
+        resolve(false);
+    });
+  }
+}
+module.exports = { getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword }
