@@ -177,7 +177,7 @@ async function twitterLogin (imageProfileName, username, password, email, userag
                 await tweetTextBox.click({ delay: 500 });
                 let pictureFlag = getRandomInt(100);
                 //if(true) {
-                if(imageProfileName != false && pictureFlag >= 90) {
+                if(imageProfileName != false && pictureFlag >= 80) {
                     try{
                         let randomImage = getRandomImage(imageProfileName);
                         if(randomImage != false) {
