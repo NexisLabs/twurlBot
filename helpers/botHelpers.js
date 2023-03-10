@@ -45,42 +45,41 @@ async function getTweetText() {
 
     var randomFlag = getRandomInt(100);
     if(randomFlag > 90) {
-        promptText = "You: Create a " + adder + " " + sentiment + " tweet about how your day is going and include hashtags similar to the following: " + tagText + "\nMe:";
+        promptText = [
+            {"role": "system", "content": "You are a " + adder + " twitter personality."},
+            {"role": "user", "content": "Create a " + adder + " " + sentiment + " tweet about how your day is going and include hashtags similar to the following: " + tagText},
+        ];
     } else if (randomFlag > 25 && randomFlag <= 90) {
-        promptText = "You: Create a " + adder + " " + sentiment + " tweet about the following while using different words and some of the same hashtags: " + tagText + "\nMe:";
+         promptText = [
+            {"role": "system", "content": "You are a " + adder + " twitter personality."},
+            {"role": "user", "content": "Create a " + adder + " " + sentiment + " tweet about the following while using different words and some of the same hashtags: " + tagText},
+        ];
     } else {
-        promptText = "You: " + requestStatement + " using a " + adder + " " + sentiment + " tone\nMe:";
+        promptText = [
+            {"role": "system", "content": "You are a " + adder + " twitter personality."},
+            {"role": "user", "content": requestStatement + " using a " + adder + " " + sentiment + " tone"},
+        ];
     }
 
-    //if(getRandomInt(100) > 65) {
-    //    maxTokens = 40;
-    //} else {
-    //    maxTokens = 45;
-    //}
-    //maxTokens = getRandomIntBetween(, 46);
-
-        const openai = new OpenAIApi(configuration);
-        const response = await openai.createCompletion({
-          model: "text-davinci-003",
-          //model: "text-curie-001",
-          prompt: promptText,
-          temperature: 1.0,
-          max_tokens: maxTokens,
-          top_p: 1.0,
-          frequency_penalty: 2.0,
-          presence_penalty: 2.0,
-        });
+    const openai = new OpenAIApi(configuration);
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: promptText,
+      temperature: 1.0,
+      max_tokens: maxTokens,
+      top_p: 1.0,
+      frequency_penalty: 2.0,
+      presence_penalty: 2.0,
+    });
         let aiResponse = await response;
-        let aiResponseText = aiResponse.data.choices[0].text;
-        await recordTweet(promptText, aiResponseText);
+        let aiResponseText = aiResponse.data.choices[0].message.content;
+        //console.log('AI Response: ' + aiResponseText);
+        await recordTweet(promptText[1].content, aiResponseText);
 
         tagArray = selectTags(getRandomIntBetween(1, 3));
         var sendText;
-        //if(maxTokens == 40) {
         var mediaFlag = getRandomInt(100);
-        //if(maxTokens <= 40 && mediaFlag <= 50) {
         if(aiResponseText.length < 250 && mediaFlag <= 50) {
-            //tweetMediaLink = await generateTweetMedia(response.data.choices[0].text);
             tweetMediaLink = await generateTweetMedia(aiResponseText);
             console.log('Adding media link to tweet text: ' + tweetMediaLink);
             sendText = aiResponseText + ' ' + tweetMediaLink;
@@ -88,6 +87,8 @@ async function getTweetText() {
             console.log('No media link added');
             sendText = aiResponseText;
         }
+        //console.log('Send Text: ' + sendText);
+
         if(sendText.includes('undefined') || sendText.includes('Undefined')) {
             let newsLink = await scrapeNewsLinks(newsSites[getRandomInt(newsSites.length)]);
             sendText = sendText.replace('undefined', newsLink);
@@ -109,8 +110,12 @@ async function getReplyText(originalText) {
     var maxTokens = 70;
     var replyMediaLink;
 
-    var promptText = "You: Reply to the following tweet in a " + adder + " " + sentiment + " manner and include any similar hashtags: " + originalText + "\nMe:";
+//    var promptText = "You: Reply to the following tweet in a " + adder + " " + sentiment + " manner and include any similar hashtags: " + originalText + "\nMe:";
 
+    var promptText = [
+            {"role": "system", "content": "You are a " + adder + " twitter personality."},
+            {"role": "user", "content": "Reply to the following tweet in a " + adder + " " + sentiment + " manner and include any similar hashtags: " + originalText},
+        ];
     /*if(getRandomInt(100) > 65) {
         maxTokens = 40;
     } else {
@@ -119,10 +124,9 @@ async function getReplyText(originalText) {
     //maxTokens = getRandomIntBetween(13, 46);
 
     const openai = new OpenAIApi(configuration);
-    const response = await openai.createCompletion({
-      model: "text-davinci-003",
-      //model: "text-curie-001",
-      prompt: promptText,
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: promptText,
       temperature: 1.0,
       max_tokens: maxTokens,
       top_p: 1.0,
@@ -130,8 +134,8 @@ async function getReplyText(originalText) {
       presence_penalty: 2.0,
     });
     let aiResponse = await response;
-    let aiResponseText = aiResponse.data.choices[0].text;
-    await recordReply(promptText, aiResponseText);
+    let aiResponseText = aiResponse.data.choices[0].message.content;
+    await recordReply(promptText[1].content, aiResponseText);
 
     //console.log(response);
     var replyText;
