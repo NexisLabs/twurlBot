@@ -1,3 +1,4 @@
+const download = require('image-downloader');
 const {Client } = require("pg");
 const axios = require('axios');
 const fs = require('fs');
@@ -6,6 +7,7 @@ const unirest = require("unirest");
 const { Configuration, OpenAIApi } = require("openai");
 const databaseUrl = fs.readFileSync('/home/twitbot/twitBotAI/.databaseurl', 'utf8');
 const myPassword = fs.readFileSync('/home/twitbot/twitBotAI/.password', 'utf8');
+const { getGender } = require('gender-detection-from-name');
 //const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
 const CryptoJS = require('crypto-js');
 //const botData = require('/home/twitbot/twurlBot/botData.json');
@@ -26,6 +28,36 @@ async function start() {
     tags = botData.tags;
 }
 start();
+
+async function getTwitterBio(gender, bioTopics) {
+    const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
+    const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
+    const adder = botData.adder[getRandomInt(botData.adder.length)];
+    const configuration = new Configuration({
+      apiKey: myOpenAIApiKey.trim(),
+    });
+    var maxTokens = 42;
+    var promptText = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Create 130 character max twitter bio for a " + gender + " using these topics and hashtags similar to these topics: " + bioTopics},
+    ];
+
+    const openai = new OpenAIApi(configuration);
+    const response = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: promptText,
+      temperature: 1.0,
+      max_tokens: maxTokens,
+      top_p: 1.0,
+      frequency_penalty: 2.0,
+      presence_penalty: 2.0,
+    });
+    //console.log(response.data.choices);
+    var bioText = response.data.choices[0].message.content;
+    return new Promise((resolve, reject) => {
+        resolve(bioText);
+    });
+}
 
 async function getTweetText() {
     const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
@@ -532,6 +564,26 @@ function getRemoteBotData() {
     });
   });
 }
+function getRemoteUntouchableAccounts() {
+  return new Promise((resolve, reject) => {
+
+    let req = http.get("https://bot.nexislabs.org/public/untouchableAccounts.html", function(res) {
+        let data = '',
+            json_data;
+        res.on('data', function(stream) {
+            data += stream;
+        });
+        res.on('end', function() {
+            var decryptedData = decryptWithAES(data, myPassword);
+            json_data = JSON.parse(decryptedData);
+                        resolve(json_data);
+        });
+    });
+    req.on('error', function(e) {
+        console.log(e.message);
+    });
+  });
+}
 async function getImageProfile(username) {
   const client = new Client({
     connectionString: databaseUrl,
@@ -612,4 +664,158 @@ async function recordReply(input, output) {
     });
   }
 }
-module.exports = { getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword }
+async function getProfilePhoto(name) {
+  return new Promise(async(resolve, reject) => {
+    let profileFilename = await download.image({url: 'https://bot.nexislabs.org/api/randomPhoto/' + name, dest: '/home/twitbot/twurlBot/logs/profile.jpg'});
+    resolve(profileFilename);
+  });
+}
+async function getBannerPhoto(name) {
+  return new Promise(async(resolve, reject) => {
+    let bannerFilename = await download.image({url: 'https://bot.nexislabs.org/api/randomPhoto/' + name, dest: '/home/twitbot/twurlBot/logs/banner.jpg'});
+    resolve(bannerFilename);
+  });
+}
+async function getRandomProfileData() {
+    return new Promise((resolve, reject) => {
+
+    let req = http.get("https://bot.nexislabs.org/api/randomProfile/", function(res) {
+        let data = '',
+            json_data;
+        res.on('data', function(stream) {
+            data += stream;
+        });
+        res.on('end', function() {
+            json_data = JSON.parse(data);
+            resolve(json_data);
+        });
+    });
+    req.on('error', function(e) {
+        console.log(e.message);
+    });
+  });
+}
+async function checkForTwitterDuplicateProfileUse(profileName) {
+  const client = new Client({
+    connectionString: databaseUrl,
+    application_name: "profileScraperCheck"
+  });
+  //var tableName = 'twitter_' + profileName;
+  var tableName = 'twitterProfiles';
+  try {
+    await client.connect();
+    let statement = "CREATE TABLE IF NOT EXISTS twitterProfiles (id SERIAL PRIMARY KEY, username STRING, profilename STRING, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+    let result = await client.query(statement);
+    statement = "SELECT * FROM " + tableName + " WHERE profilename = '" + profileName + "'";
+    result = await client.query(statement);
+    if (result.rowCount > 0) {
+        console.log('Duplicate profile usage');
+        return new Promise((resolve, reject) => {
+            resolve(true);
+        });
+    } else {
+        console.log('Duplicate profile usage does not exist');
+        return new Promise((resolve, reject) => {
+            resolve(false);
+        });
+    }
+    await client.end();
+  } catch (err) {
+    console.log(`error connecting: ${err}`);
+    console.log('Duplicate profile usage does not exist');
+    return new Promise((resolve, reject) => {
+        resolve(false);
+    });
+  }
+}
+async function checkForTwitterDuplicateAccountUse(profileName) {
+  const client = new Client({
+    connectionString: databaseUrl,
+    application_name: "profileScraperCheck"
+  });
+  //var tableName = 'twitter_' + profileName;
+  var tableName = 'twitterProfiles';
+  try {
+    await client.connect();
+    let statement = "CREATE TABLE IF NOT EXISTS twitterProfiles (id SERIAL PRIMARY KEY, username STRING, profilename STRING, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+    let result = await client.query(statement);
+    statement = "SELECT * FROM " + tableName + " WHERE username = '" + profileName + "'";
+    result = await client.query(statement);
+    if (result.rowCount > 0) {
+        console.log('Duplicate account usage');
+        return new Promise((resolve, reject) => {
+            resolve(true);
+        });
+    } else {
+        console.log('Duplicate account usage does not exist');
+        return new Promise((resolve, reject) => {
+            resolve(false);
+        });
+    }
+    await client.end();
+  } catch (err) {
+    console.log(`error connecting: ${err}`);
+    console.log('Duplicate profile usage does not exist');
+    return new Promise((resolve, reject) => {
+        resolve(false);
+    });
+  }
+}
+async function addMediaUseToDatabase(username, profileName) {
+  const client = new Client({
+    connectionString: databaseUrl,
+    application_name: "profileScraperAdd"
+  });
+  try {
+    await client.connect();
+    let statement = "CREATE TABLE IF NOT EXISTS twitterProfiles (id SERIAL PRIMARY KEY, username STRING, profilename STRING, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+    let result = await client.query(statement);
+    statement = "SELECT * FROM twitterProfiles WHERE username = '" + username + "'";
+    result = await client.query(statement);
+    if (result.rowCount > 0) {
+        console.log('Updating existing user entry in database');
+        statement = "UPDATE twitterProfiles SET (profilename) = ('" + profileName + "') WHERE username = '" + username + "'";
+    } else {
+        console.log('Adding user entry in database');
+        statement = "INSERT INTO twitterProfiles (username, profileName) VALUES ('" + username + "', '" + profileName + "')";
+    }
+    result = await client.query(statement);
+    return new Promise((resolve, reject) => {
+        resolve(true);
+    });
+    await client.end();
+  } catch (err) {
+    console.log(`error connecting: ${err}`);
+  }
+}
+function getGenderFromName(name) {
+    return new Promise((resolve, reject) => {
+    let gender = getGender(name);
+    if(gender == 'unknown') {
+        let splitName = name.split(/(?=[A-Z])/);
+        let combinedName = '';
+        for(var i = 0; i < splitName.length; i++) {
+            combinedName += (splitName[i] + ' ');
+            if(i == (splitName.length - 1)) {
+                console.log('Combined Name: ' + combinedName);
+                gender = getGender(combinedName);
+                if(gender == 'unknown') {
+                    gender = 'female';
+                    console.log('Gender cannot be determined - defaulting to female');
+                    //console.log('Gender: ' + gender);
+                    resolve(gender);
+                } else {
+                    //console.log('Gender: ' + gender);
+                    resolve(gender);
+                }
+            } else {
+                resolve('female');
+            }
+        }
+    } else {
+        //console.log('Gender: ' + gender);
+        resolve(gender);
+    }
+    });
+}
+module.exports = { getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getProfilePhoto, getBannerPhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword }

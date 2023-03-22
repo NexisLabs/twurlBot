@@ -1,6 +1,7 @@
-const { getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('/home/twitbot/twurlBot/helpers/botHelpers.js');
+const { getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getBannerPhoto, getProfilePhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('/home/twitbot/twurlBot/helpers/botHelpers.js');
 const {Client } = require("pg");
 const axios = require('axios');
+const Fakerator = require("fakerator");
 const http = require('https');
 const fs = require('fs');
 const proxyChain = require('proxy-chain');
@@ -24,6 +25,7 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 
 async function start() {
+    var profileUpdateFlag = false;
     botData = await getRemoteBotData();
     tags = botData.tags
 
@@ -35,7 +37,22 @@ async function start() {
     } else {
         console.log('Image Profile Not Found');
     }
-    await twitterLogin(imageProfileName, randomAccount.username, randomAccount.password, randomAccount.email, randomAccount.useragent, randomAccount.proxy);
+
+    let untouchableAccounts = await getRemoteUntouchableAccounts();
+    if(untouchableAccounts.includes(randomAccount.email.toLowerCase())) {
+        console.log('Account is untouchable');
+    } else {
+        console.log('Account is not untouchable');
+        let accountFlag1 = await checkForTwitterDuplicateAccountUse(randomAccount.email);
+        let accountFlag2 = await twitterProfileCheck(randomAccount.username);
+        if(accountFlag1 == false || accountFlag2 == true) {
+            console.log('Profile update needed');
+            profileUpdateFlag = true;
+        } else {
+            console.log('Profile update not needed');
+        }
+    }
+    await twitterLogin(profileUpdateFlag, imageProfileName, randomAccount.username, randomAccount.password, randomAccount.email, randomAccount.useragent, randomAccount.proxy);
     process.exit(0);
 }
 
@@ -60,7 +77,7 @@ async function gracefulExit(browser, proxyChain, proxyUrl, message) {
     process.exit(1);
 }
 
-async function twitterLogin (imageProfileName, username, password, email, useragent, proxyString) {
+async function twitterLogin (profileUpdateFlag, imageProfileName, username, password, email, useragent, proxyString) {
     console.log('Account Selected: ' + username);
     console.log('Proxy Selected: ' + proxyString);
 
@@ -135,6 +152,152 @@ async function twitterLogin (imageProfileName, username, password, email, userag
         const actionConstant = 10000;
         await reportStatus('Login', 'success');
 
+        // actionFlag0 - Update Profile
+        try {
+        if(profileUpdateFlag == true) {
+            await page.goto('https://twitter.com/settings/profile');
+            await page.waitForTimeout(20000);
+            var randomProfileData = await getRandomProfileData();
+            var randomProfile = randomProfileData[0];
+            let name = randomProfileData[1];
+            let gender = await getGenderFromName(name);
+            var fakerator = Fakerator();
+            var firstName;
+            var lastName;
+            var altNameFlag = false;
+            if(gender == 'female') {
+                let nameFlag = getRandomInt(100);
+                if(nameFlag < 10) {
+                    altNameFlag = true;
+                    firstName = 'Queen';
+                    lastName = fakerator.names.firstNameF();
+                } else if(nameFlag >= 10 && nameFlag < 20) {
+                    altNameFlag = true;
+                    firstName = 'Princess';
+                    lastName = fakerator.names.firstNameF();
+                } else if(nameFlag >= 20 && nameFlag < 30) {
+                    altNameFlag = true;
+                    firstName = 'Crypto';
+                    lastName = fakerator.names.firstNameF();
+                } else if(nameFlag >= 30 && nameFlag < 35) {
+                    altNameFlag = true;
+                    firstName = 'BTC';
+                    lastName = fakerator.names.firstNameF();
+                } else if(nameFlag >= 35 && nameFlag < 40) {
+                    altNameFlag = true;
+                    firstName = 'Btc';
+                    lastName = fakerator.names.firstNameF();
+                } else {
+                    firstName = fakerator.names.firstNameF();
+                    lastName = fakerator.names.lastNameF();
+                }
+            } else {
+                firstName = fakerator.names.firstNameM();
+                lastName = fakerator.names.lastNameM();
+            }
+            var fullName;
+            if(altNameFlag && getRandomInt(100) > 70) {
+                fullName = firstName + lastName;
+            } else {
+                fullName = firstName + ' ' + lastName;
+            }
+            let bioTopicArrayNumber = getRandomIntBetween(1,4);
+            let bioTopicArray = selectTags(bioTopicArrayNumber);
+            let bioTopics = bioTopicArray.join(' ');
+            let bio = await getTwitterBio(gender, bioTopics);
+            let location = fakerator.address.state();
+            let bannerImageLocation = await getBannerPhoto(randomProfile);
+            var imageNameArray, imageName;
+            let profileImageLocation = await getProfilePhoto(randomProfile);
+            console.log('Profile Name: '+ name);
+            console.log('Gender: ' + gender);
+            console.log('First Name: ' + firstName);
+            console.log('Last Name: ' + lastName);
+            console.log('Full Name: ' + fullName);
+            console.log('Generated Twitter Bio: ' + bio);
+            console.log('Location: ' + location);
+            console.log('Profile Image: ' + profileImageLocation.filename);
+            console.log('Profile Image Name: ' + imageName);
+            console.log(profileImageLocation);
+            console.log('Banner Image: ' + bannerImageLocation.filename);
+            console.log(bannerImageLocation);
+
+            const nameTextBox = await page.$('input[name="displayName"]');
+            console.log('Name Text Box Detected');
+            await nameTextBox.click({ clickCount: 3 });
+            await page.waitForTimeout(2000);
+            await nameTextBox.type(fullName, {delay: 300} );
+            await page.waitForTimeout(2000);
+
+            await page.waitForTimeout(2000);
+            const bioTextBox = await page.$('textarea[name="description"]');
+            console.log('Bio Text Box Detected');
+            await bioTextBox.click({ clickCount: 1 });
+            await page.waitForTimeout(2000);
+            await page.keyboard.down('Control');
+            await page.keyboard.press('A');
+            await page.keyboard.up('Control');
+            await page.keyboard.press('Backspace');
+            await page.waitForTimeout(2000);
+            await bioTextBox.type(bio, {delay: 300} );
+            await page.waitForTimeout(2000);
+
+            const locationTextBox = await page.$('input[name="location"]')
+            console.log('Location Text Box Detected');
+            await locationTextBox.click({ clickCount: 3 });
+            await page.waitForTimeout(2000);
+            await locationTextBox.type(location, {delay: 300} );
+            await page.waitForTimeout(5000);
+
+            var bannerUploadButton = await page.$('div[aria-label="Add banner photo"]');
+            if(bannerUploadButton) {
+                console.log('Banner upload button detected');
+                const bannerInput = await page.evaluateHandle(el => el.nextElementSibling, bannerUploadButton);
+                await bannerInput.uploadFile(bannerImageLocation.filename);
+                console.log('Banner upload complete');
+                await page.waitForTimeout(90000);
+                await page.keyboard.press("Tab");
+                await page.keyboard.press("Enter");
+
+                var profileUploadButton = await page.$('div[aria-label="Add avatar photo"]');
+                if(profileUploadButton) {
+                    console.log('Profile Upload Button Found!');
+                    const profileInput = await page.evaluateHandle(el => el.nextElementSibling, profileUploadButton);
+                    await profileInput.uploadFile(profileImageLocation.filename);
+                    console.log('Profile image upload complete');
+                    await page.waitForTimeout(90000);
+                    await page.keyboard.press("Tab");
+                    await page.keyboard.press("Enter");
+
+                    var saveButton = await page.$('div[data-testid="Profile_Save_Button"]');
+                    if (saveButton) {
+                        console.log('Profile Save Button Found!');
+                        await saveButton.click();
+                        console.log('Profile Save Button Clicked');
+                        await page.waitForTimeout(20000);
+                        //await addMediaUseToDatabase(username, randomProfile);
+                        console.log('Adding email/profile to database - Email: ' + email + ' Profile: ' + randomProfile);
+                        await addMediaUseToDatabase(email, randomProfile);
+                        await reportStatus('0', 'success');
+                        await page.waitForTimeout(5000);
+                    } else {
+                        console.log('Save Button Not Found!');
+                        await reportStatus('0', 'failed');
+                    }
+                } else {
+                    console.log('Profile Upload Button Not Found!');
+                    await reportStatus('0', 'failed');
+                }
+            } else {
+                console.log('Banner Upload Button Not Found!');
+                await reportStatus('0', 'failed');
+            }
+        } // end of outer if
+        }catch(err) {
+            console.log('0 Caught Error: ' + err);
+            await reportStatus('0', 'failed');
+        }
+
         // actionFlag10 - For Account Tweets
         try {
         var actionFlag10 = getRandomInt(actionConstant);
@@ -176,7 +339,7 @@ async function twitterLogin (imageProfileName, username, password, email, userag
                 console.log('Tweet text box found');
                 await tweetTextBox.click({ delay: 500 });
                 let pictureFlag = getRandomInt(100);
-                if(false) {
+                /*if(true) {
                 //if(imageProfileName != false) {
                 //if(imageProfileName != false && pictureFlag >= 80) {
                     try{
@@ -208,10 +371,10 @@ async function twitterLogin (imageProfileName, username, password, email, userag
                         let tweetText = await getTweetText();
                         await tweetTextBox.type(tweetText, { delay: 200 });
                     }
-                } else {
+                } else {*/
                     let tweetText = await getTweetText();
                     await tweetTextBox.type(tweetText, { delay: 200 });
-                }
+                //}
             }
             console.log('Tweet text entered');
             await page.waitForTimeout(5000)
@@ -1011,4 +1174,61 @@ function getRandomImage(profile) {
     } else {
         return profilePath + '/images/' + images[getRandomInt(images.length)];
     }
+}
+async function twitterProfileCheck (username) {
+    console.log('Account Selected: ' + username);
+    const browser = await puppeteer.launch({ headless: true, executablePath: executablePath });
+    const context = browser.defaultBrowserContext();
+    context.overridePermissions("https://twitter.com", ["geolocation", "notifications"]);
+    context.overridePermissions("https://www.twitter.com", ["geolocation", "notifications"]);
+    const page = (await browser.pages())[0];
+    await page.setDefaultNavigationTimeout(240000);
+
+    await page.goto('https://twitter.com/' + username, {waitUntil: 'networkidle0'});
+    let profilePageStatus1 = await customCheckForText(page, 'Following', 'profilePageStatus1');
+    let profilePageStatus2 = await customCheckForText(page, 'Follower', 'profilePageStatus2');
+    if (profilePageStatus1 == true && profilePageStatus2 == true){
+        console.log('Profile page loaded correctly - Starting profile check process');
+    } else {
+        console.log('Profile page is down or locked - Exiting');
+        await browser.close();
+        return new Promise((resolve, reject) => {
+            resolve(false)
+        });
+    }
+
+    let profilePageBannerStatus = await customCheckForText(page, 'header_photo', 'profilePageBannerStatus');
+    let profilePageProfileStatus = await customCheckForText(page, 'default_profile_200x200.png', 'profilePageProfileStatus');
+
+    if(profilePageBannerStatus == true && profilePageProfileStatus == false) {
+        console.log('Banner & Profile Image Both Exist');
+        await browser.close();
+        return new Promise((resolve, reject) => {
+            resolve(false)
+        });
+    } else {
+        console.log('Banner & Profile Image Have Issues - Profile Update Needed');
+        await browser.close();
+        return new Promise((resolve, reject) => {
+            resolve(true)
+        });
+    }
+}
+async function customCheckForText(page, text, customName) {
+        await page.waitForTimeout(10000)
+        await page.screenshot({path: '/home/twitbot/twurlBot/logs/' + customName + 'Screenshot.jpg', fullPage: true})
+        let html = await page.content();
+        fs.writeFileSync('/home/twitbot/twurlBot/logs/'+ customName +'Log.txt', html);
+        let status = await searchString(html, text);
+        if(status) {
+            console.log(customName + ' text found');
+            return new Promise((resolve, reject) => {
+                resolve(true);
+            });
+        } else {
+            console.log('Text not found for ' + customName);
+            return new Promise((resolve, reject) => {
+                resolve(false);
+            });
+        }
 }
