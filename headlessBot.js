@@ -26,34 +26,38 @@ puppeteer.use(StealthPlugin())
 
 async function start() {
     var profileUpdateFlag = false;
+    var imageProfileName = false;
     botData = await getRemoteBotData();
     tags = botData.tags
 
     loginArray = await getRemoteLogins();
     let randomAccount = loginArray[getRandomInt(loginArray.length)];
-    /*let imageProfileName = await getImageProfile(randomAccount.email);
-    if(imageProfileName != false) {
-        console.log('Image Profile: ' + imageProfileName);
-    } else {
-        console.log('Image Profile Not Found');
-    }*/
-
-    /*let untouchableAccounts = await getRemoteUntouchableAccounts();
-    if(untouchableAccounts.includes(randomAccount.email.toLowerCase())) {
-        console.log('Account is untouchable');
-    } else {
-        console.log('Account is not untouchable');
-        let accountFlag1 = await checkForTwitterDuplicateAccountUse(randomAccount.email);
-        let accountFlag2 = await twitterProfileCheck(randomAccount.username);
-        if(accountFlag1 == false || accountFlag2 == true) {
-            console.log('Profile update needed');
-            profileUpdateFlag = true;
+    let photoFlag = getRandomInt(100);
+    if(photoFlag > 80) {
+        imageProfileName = await getImageProfile(randomAccount.email);
+        if(imageProfileName != false) {
+            console.log('Image Profile: ' + imageProfileName);
         } else {
-            console.log('Profile update not needed');
+            console.log('Image Profile Not Found');
         }
-    }*/
-    imageProfileName = false;
-    profileUpdateFlag = false;
+    } else if(photoFlag <= 20) {
+        let untouchableAccounts = await getRemoteUntouchableAccounts();
+        if(untouchableAccounts.includes(randomAccount.email.toLowerCase())) {
+            console.log('Account is untouchable');
+        } else {
+            console.log('Account is not untouchable');
+            let accountFlag1 = await checkForTwitterDuplicateAccountUse(randomAccount.email);
+            let accountFlag2 = await twitterProfileCheck(randomAccount.username);
+            if(accountFlag1 == false || accountFlag2 == true) {
+                console.log('Profile update needed');
+                profileUpdateFlag = true;
+            } else {
+                console.log('Profile update not needed');
+            }
+        }
+    }
+    //imageProfileName = false;
+    //profileUpdateFlag = false;
     await twitterLogin(profileUpdateFlag, imageProfileName, randomAccount.username, randomAccount.password, randomAccount.email, randomAccount.useragent, randomAccount.proxy);
     process.exit(0);
 }
@@ -154,9 +158,9 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         const actionConstant = 10000;
         await reportStatus('Login', 'success');
 
+        if(profileUpdateFlag == true) {
         // actionFlag0 - Update Profile
         try {
-        if(profileUpdateFlag == true) {
             await page.goto('https://twitter.com/settings/profile');
             await page.waitForTimeout(20000);
             var randomProfileData = await getRandomProfileData();
@@ -294,10 +298,16 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 console.log('Banner Upload Button Not Found!');
                 await reportStatus('0', 'failed');
             }
-        } // end of outer if
         }catch(err) {
             console.log('0 Caught Error: ' + err);
             await reportStatus('0', 'failed');
+        }
+        await browser.close();
+        await proxyChain.closeAnonymizedProxy(proxyUrl, true);
+        await reportStatus('Complete', 'success');
+        return new Promise((resolve, reject) => {
+            resolve(true)
+        });
         }
 
         // actionFlag10 - For Account Tweets
@@ -340,10 +350,11 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
             if (tweetTextBox) {
                 console.log('Tweet text box found');
                 await tweetTextBox.click({ delay: 500 });
-                let pictureFlag = getRandomInt(100);
+                //let pictureFlag = getRandomInt(100);
                 //if(true) {
-                //if(imageProfileName != false) {
-                if(imageProfileName != false && pictureFlag > 80) {
+                if(imageProfileName != false) {
+                    console.log('Attempting to tweet photo');
+                //if(imageProfileName != false && pictureFlag > 80) {
                     try{
                         let randomImage = await getRandomPhoto(imageProfileName);
                         if(randomImage != false) {
@@ -352,9 +363,17 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                             if(imageUploadButton) {
                                 console.log('Image Upload Button Found!');
                                 const imageInput = await page.evaluateHandle(el => el.nextElementSibling, imageUploadButton);
-                                await imageInput.uploadFile(randomImage);
-                                console.log('Image upload successful');
-                                await reportStatus('ImageUpload', 'success');
+                                if(imageInput) {
+                                    console.log('Image input found');
+                                    await imageInput.uploadFile(randomImage.filename);
+                                    console.log('Image upload successful');
+                                    await reportStatus('ImageUpload', 'success');
+                                } else {
+                                    await reportStatus('ImageUpload', 'failed');
+                                    console.log('Image upload failed - image input');
+                                    let tweetText = await getTweetText();
+                                    await tweetTextBox.type(tweetText, { delay: 200 });
+                                }
                             } else {
                                 await reportStatus('ImageUpload', 'failed');
                                 console.log('Image upload failed - image upload button');
