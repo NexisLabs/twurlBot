@@ -57,11 +57,11 @@ async function start() {
 }
 
 // random delay, then start running!
-//let randomDelay = getRandomInt(300000);
-//console.log('Delaying runtime by ' + (randomDelay/1000) + ' seconds');
-//setTimeout(() => {
+let randomDelay = getRandomInt(200000);
+console.log('Delaying runtime by ' + (randomDelay/1000) + ' seconds');
+setTimeout(() => {
     start();
-//}, randomDelay)
+}, randomDelay)
 
 const decryptWithAES = (ciphertext, passphrase) => {
   const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase);
@@ -341,7 +341,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 let pictureFlag = getRandomInt(100);
                 //if(true) {
                 //if(imageProfileName != false) {
-                if(imageProfileName != false && pictureFlag >= 80) {
+                if(imageProfileName != false && pictureFlag > 80) {
                     try{
                         let randomImage = await getRandomPhoto(imageProfileName);
                         if(randomImage != false) {
