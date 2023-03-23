@@ -31,14 +31,14 @@ async function start() {
 
     loginArray = await getRemoteLogins();
     let randomAccount = loginArray[getRandomInt(loginArray.length)];
-    let imageProfileName = await getImageProfile(randomAccount.email);
+    /*let imageProfileName = await getImageProfile(randomAccount.email);
     if(imageProfileName != false) {
         console.log('Image Profile: ' + imageProfileName);
     } else {
         console.log('Image Profile Not Found');
-    }
+    }*/
 
-    let untouchableAccounts = await getRemoteUntouchableAccounts();
+    /*let untouchableAccounts = await getRemoteUntouchableAccounts();
     if(untouchableAccounts.includes(randomAccount.email.toLowerCase())) {
         console.log('Account is untouchable');
     } else {
@@ -51,7 +51,9 @@ async function start() {
         } else {
             console.log('Profile update not needed');
         }
-    }
+    }*/
+    imageProfileName = false;
+    profileUpdateFlag = false;
     await twitterLogin(profileUpdateFlag, imageProfileName, randomAccount.username, randomAccount.password, randomAccount.email, randomAccount.useragent, randomAccount.proxy);
     process.exit(0);
 }
