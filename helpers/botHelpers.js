@@ -676,6 +676,12 @@ async function getBannerPhoto(name) {
     resolve(bannerFilename);
   });
 }
+async function getRandomPhoto(name) {
+  return new Promise(async(resolve, reject) => {
+    let randomFilename = await download.image({url: 'https://bot.nexislabs.org/api/randomPhoto/' + name, dest: '/home/twitbot/twurlBot/logs/random.jpg'});
+    resolve(randomFilename);
+  });
+}
 async function getRandomProfileData() {
     return new Promise((resolve, reject) => {
 
@@ -818,4 +824,4 @@ function getGenderFromName(name) {
     }
     });
 }
-module.exports = { getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getProfilePhoto, getBannerPhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword }
+module.exports = { getRandomPhoto, getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getProfilePhoto, getBannerPhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword }

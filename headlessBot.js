@@ -1,4 +1,4 @@
-const { getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getBannerPhoto, getProfilePhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('/home/twitbot/twurlBot/helpers/botHelpers.js');
+const { getRandomPhoto, getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getBannerPhoto, getProfilePhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('/home/twitbot/twurlBot/helpers/botHelpers.js');
 const {Client } = require("pg");
 const axios = require('axios');
 const Fakerator = require("fakerator");
@@ -339,11 +339,11 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 console.log('Tweet text box found');
                 await tweetTextBox.click({ delay: 500 });
                 let pictureFlag = getRandomInt(100);
-                /*if(true) {
+                //if(true) {
                 //if(imageProfileName != false) {
-                //if(imageProfileName != false && pictureFlag >= 80) {
+                if(imageProfileName != false && pictureFlag >= 80) {
                     try{
-                        let randomImage = getRandomImage(imageProfileName);
+                        let randomImage = await getRandomPhoto(imageProfileName);
                         if(randomImage != false) {
                             //var imageUploadInput = await page.$x('input[data-testid="fileInput"]');
                             var imageUploadButton = await page.$('div[aria-label="Add photos or video"]');
@@ -371,10 +371,10 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                         let tweetText = await getTweetText();
                         await tweetTextBox.type(tweetText, { delay: 200 });
                     }
-                } else {*/
+                } else {
                     let tweetText = await getTweetText();
                     await tweetTextBox.type(tweetText, { delay: 200 });
-                //}
+                }
             }
             console.log('Tweet text entered');
             await page.waitForTimeout(5000)
@@ -1164,7 +1164,7 @@ async function customWaitForText(page, text, seconds, customName) {
         }
     }
 }
-function getRandomImage(profile) {
+/*function getRandomImage(profile) {
     const profilePath = profilesPath + profile;
     const images = fs.readdirSync(profilePath + '/images');
     if(!images || images.length < 5) {
@@ -1174,7 +1174,7 @@ function getRandomImage(profile) {
     } else {
         return profilePath + '/images/' + images[getRandomInt(images.length)];
     }
-}
+}*/
 async function twitterProfileCheck (username) {
     console.log('Account Selected: ' + username);
     const browser = await puppeteer.launch({ headless: true, executablePath: executablePath });
