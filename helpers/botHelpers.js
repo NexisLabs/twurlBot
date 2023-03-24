@@ -75,34 +75,37 @@ async function getTweetText() {
     let tagArray = selectTags(5);
     let tagText = tagArray.join(' ');
 
-    var randomFlag = getRandomInt(100);
-    if(randomFlag > 90) {
-        promptText = [
-            {"role": "system", "content": "You are a " + adder + " twitter personality."},
-            {"role": "user", "content": "Create a " + adder + " " + sentiment + " tweet about how your day is going and include hashtags similar to the following: " + tagText},
-        ];
-    } else if (randomFlag > 25 && randomFlag <= 90) {
-         promptText = [
-            {"role": "system", "content": "You are a " + adder + " twitter personality."},
-            {"role": "user", "content": "Create a " + adder + " " + sentiment + " tweet about the following while using different words and some of the same hashtags: " + tagText},
-        ];
-    } else {
-        promptText = [
-            {"role": "system", "content": "You are a " + adder + " twitter personality."},
-            {"role": "user", "content": requestStatement + " using a " + adder + " " + sentiment + " tone"},
-        ];
-    }
+    let tweetTypeFlag = getRandomInt(100)
+    if(tweetTypeFlag < 65) {
 
-    const openai = new OpenAIApi(configuration);
-    const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: promptText,
-      temperature: 1.0,
-      max_tokens: maxTokens,
-      top_p: 1.0,
-      frequency_penalty: 2.0,
-      presence_penalty: 2.0,
-    });
+        var randomFlag = getRandomInt(100);
+        if(randomFlag > 90) {
+            promptText = [
+                {"role": "system", "content": "You are a " + adder + " twitter personality."},
+                {"role": "user", "content": "Create a " + adder + " " + sentiment + " tweet about how your day is going and include hashtags similar to the following: " + tagText},
+            ];
+        } else if (randomFlag > 25 && randomFlag <= 90) {
+             promptText = [
+                {"role": "system", "content": "You are a " + adder + " twitter personality."},
+                {"role": "user", "content": "Create a " + adder + " " + sentiment + " tweet about the following while using different words and some of the same hashtags: " + tagText},
+            ];
+        } else {
+            promptText = [
+                {"role": "system", "content": "You are a " + adder + " twitter personality."},
+                {"role": "user", "content": requestStatement + " using a " + adder + " " + sentiment + " tone"},
+            ];
+        }
+
+        const openai = new OpenAIApi(configuration);
+        const response = await openai.createChatCompletion({
+            model: "gpt-3.5-turbo",
+            messages: promptText,
+            temperature: 1.0,
+            max_tokens: maxTokens,
+      	    top_p: 1.0,
+            frequency_penalty: 2.0,
+            presence_penalty: 2.0,
+        });
         let aiResponse = await response;
         let aiResponseText = aiResponse.data.choices[0].message.content;
         //console.log('AI Response: ' + aiResponseText);
@@ -130,6 +133,18 @@ async function getTweetText() {
         return new Promise((resolve, reject) => {
             resolve(sendText);
         });
+    } else {
+        let newsLinks = await scrapeBreakingNewsLinks(newsSites[getRandomInt(newsSites.length)]);
+        let sendText = "#Breaking: " + newsLinks.title + " " + newsLinks.href;
+        if(sendText.includes('undefined') || sendText.includes('Undefined') || newsLinks.title == '' || newsLinks.href == '') {
+            let newsLink = await scrapeNewsLinks(newsSites[getRandomInt(newsSites.length)]);
+            sendText = newsLink;
+        }
+        console.log('Tag Response Text: ' + sendText);
+        return new Promise((resolve, reject) => {
+            resolve(sendText);
+        });
+    }
 }
 
 async function getReplyText(originalText) {
@@ -823,5 +838,39 @@ function getGenderFromName(name) {
         resolve(gender);
     }
     });
+}
+async function scrapeBreakingNewsLinks(url) {
+  try {
+    const { data } = await axios.get(url);
+    const $ = cheerio.load(data);
+    const listItems = $("a");
+    var linkArray = [];
+    for(var i = 0; i < listItems.length; i++) {
+      linkArray.push({href: $(listItems[i]).attr('href'), title: $(listItems[i]).attr('title')});
+      if(i >= (listItems.length - 1)) {
+          var filteredArray = linkArray.slice(18,-6);
+          filteredArray = filteredArray.filter(e => e.href !== '#');
+          filteredArray = filteredArray.filter(e => !e.href.includes('category'));
+          filteredArray = filteredArray.filter(e => e.href.includes('-'));
+          filteredArray = filteredArray.filter(e => !e.href.includes('admin'));
+          filteredArray = filteredArray.filter(e => !e.href.includes('about-us'));
+          filteredArray = filteredArray.filter(e => !e.href.includes('privacy-policy'));
+          filteredArray = filteredArray.filter(e => !e.href.includes('contact-us'));
+          filteredArray = filteredArray.filter(e => !e.href.includes('#respond'));
+          filteredArray = Array.from(new Set(filteredArray));
+          await reportStatus('BreakingNewsLink', 'success');
+          return new Promise((resolve, reject) => {
+              resolve(filteredArray[getRandomInt(filteredArray.length)]);
+          });
+          //console.log(filteredArray);
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    await reportStatus('BreakingNewsLink', 'failed');
+    return new Promise((resolve, reject) => {
+        resolve({href: '', title: ''});
+    });
+  }
 }
 module.exports = { getRandomPhoto, getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getProfilePhoto, getBannerPhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword }
