@@ -40,7 +40,7 @@ async function start() {
         } else {
             console.log('Image Profile Not Found');
         }
-    } else if(photoFlag <= 20) {
+    } else if(photoFlag <= 50) {
         let untouchableAccounts = await getRemoteUntouchableAccounts();
         if(untouchableAccounts.includes(randomAccount.email.toLowerCase())) {
             console.log('Account is untouchable');
