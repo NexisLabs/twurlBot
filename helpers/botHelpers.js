@@ -54,6 +54,8 @@ async function getTwitterBio(gender, bioTopics) {
     });
     //console.log(response.data.choices);
     var bioText = response.data.choices[0].message.content;
+    bioText = bioText.replace(/^"(.*)"$/, '$1');
+
     return new Promise((resolve, reject) => {
         resolve(bioText);
     });
@@ -108,6 +110,7 @@ async function getTweetText() {
         });
         let aiResponse = await response;
         let aiResponseText = aiResponse.data.choices[0].message.content;
+        aiResponseText = aiResponseText.replace(/^"(.*)"$/, '$1');
         //console.log('AI Response: ' + aiResponseText);
         await recordTweet(promptText[1].content, aiResponseText);
 
@@ -183,6 +186,7 @@ async function getReplyText(originalText) {
     let aiResponse = await response;
     let aiResponseText = aiResponse.data.choices[0].message.content;
     await recordReply(promptText[1].content, aiResponseText);
+    aiResponseText = aiResponseText.replace(/^"(.*)"$/, '$1');
 
     //console.log(response);
     var replyText;
@@ -215,6 +219,8 @@ async function generateTweetMedia(text) {
   try {
     var randomFlag = getRandomInt(100);
     if(randomFlag > 85) {
+        return new Promise((resolve, reject) => {
+
         var url = 'https://getyarn.io/yarn-find?text=' + text + '&p=' + getRandomInt(2);
         request(url, async function(err, resp, body){
             if(typeof body == 'string') {
@@ -231,21 +237,20 @@ async function generateTweetMedia(text) {
                     } else {
                         await reportStatus('YarnLink', 'success');
                     }
-                    return new Promise((resolve, reject) => {
                         if(!returnLink.includes('Undefined') && !returnLink.includes('undefined') && typeof returnLink !== 'undefined' && returnLink) {
                             resolve(returnLink);
                         } else {
                             resolve('');
                         }
                         //resolve('https://getyarn.io' + linkArray[getRandomInt(linkArray.length)]);
-                    });
                 }
             }
             } else {
-               return new Promise((resolve, reject) => {
+               //return new Promise((resolve, reject) => {
                    resolve('');
-               });
+               //});
             }
+        });
         });
     } else if(randomFlag < 15) {
          var yahooUrl = 'https://search.yahoo.com/search?p=' + text + '&fr=news&fr2=p%3Anews%2Cm%3Asb';
