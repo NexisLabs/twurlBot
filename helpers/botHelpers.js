@@ -150,7 +150,7 @@ async function getTweetText() {
     }
 }
 
-async function getReplyText(originalText) {
+async function getReplyText(originalText, replyAccountName) {
     const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
@@ -193,6 +193,14 @@ async function getReplyText(originalText) {
     //if(maxTokens == 40) {
     var mediaFlag = getRandomInt(100);
     //if(maxTokens <= 40 && mediaFlag <= 50) {
+    for(let i = 0; i < botData.importantNewsTwitterAccounts.length; i++) {
+        let botDataName = botData.importantNewsTwitterAccounts[i]
+        botDataName = botDataName.replace('@', '');
+        compareName = replyAccountName.toLowerCase();
+        if(compareName.includes(botDataName)) {
+            mediaFlag = 100;
+        }
+    }
     if(aiResponseText.length < 250 && mediaFlag <= 50) {
         replyMediaLink = await generateTweetMedia(aiResponseText);
         console.log('Adding media link to tweet text: ' + replyMediaLink);

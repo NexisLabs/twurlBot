@@ -452,7 +452,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 const originalTweetText = tweetTextArray[randomReply + 1];
                 if(originalTweetText) {
                     console.log('Original tweet text found - Text: ' + originalTweetText);
-                    let replyText = await getReplyText(originalTweetText);
+                    let replyText = await getReplyText(originalTweetText, groupAccountToReply);
                     console.log('Reply text generated - Reply: ' + replyText);
                     //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
                     //const [tweetTextBox] = await page.$x("//div[contains(., 'happeni')]");
@@ -539,7 +539,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 const originalTweetText = tweetTextArray[randomReply + 1];
                 if(originalTweetText) {
                     console.log('Original tweet text found - Text: ' + originalTweetText);
-                    let replyText = await getReplyText(originalTweetText);
+                    let replyText = await getReplyText(originalTweetText, randomAccountToReply);
                     console.log('Reply text generated - Reply: ' + replyText);
                     //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
                     const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
@@ -619,7 +619,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 const originalTweetText = tweetTextArray[randomReply + 1];
                 if(originalTweetText) {
                     console.log('Original tweet text found - Text: ' + originalTweetText);
-                    let replyText = await getReplyText(originalTweetText);
+                    let replyText = await getReplyText(originalTweetText, importantAccountToReply);
                     console.log('Reply text generated - Reply: ' + replyText);
                     //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
                     const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]");
