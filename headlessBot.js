@@ -668,8 +668,10 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         // actionFlag1 - For Group Follows
         try {
         var actionFlag1 = getRandomInt(actionConstant);
+        var actionCount1 = getRandomInt(7);
         if(actionFlag1 < (botData.groupFollowRate * actionConstant)) {
-            console.log('Action 1 - groupFollowRate Triggered');
+        for(let i = 0; i < actionCount1; i++) {
+            console.log('Action 1 - groupFollowRate Triggered - Count: ' + i);
             var groupAccountToFollow = loginArray[getRandomInt(loginArray.length)].username;
             await page.goto('https://twitter.com/' + groupAccountToFollow);
             await page.waitForTimeout(30000)
@@ -687,6 +689,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 console.log('Follow Button Not Found For ' + groupAccountToFollow);
                 await reportStatus('1', 'failure');
             }
+        } //end of for loop
         }
         }catch(err) {
             console.log('1 Caught Error: ' + err);

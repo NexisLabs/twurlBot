@@ -241,9 +241,9 @@ async function generateTweetMedia(text) {
                 if(i >= (links.length - 1)) {
                     var returnLink = 'https://getyarn.io' + linkArray[getRandomInt(linkArray.length)];
                     if(!returnLink.includes('Undefined') && !returnLink.includes('undefined') && typeof returnLink !== 'undefined' && returnLink) {
-                        await reportStatus('YarnLink', 'failed');
-                    } else {
                         await reportStatus('YarnLink', 'success');
+                    } else {
+                        await reportStatus('YarnLink', 'failed');
                     }
                         if(!returnLink.includes('Undefined') && !returnLink.includes('undefined') && typeof returnLink !== 'undefined' && returnLink) {
                             resolve(returnLink);
