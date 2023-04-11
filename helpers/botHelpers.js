@@ -112,7 +112,7 @@ async function getTweetText() {
         let aiResponseText = aiResponse.data.choices[0].message.content;
         aiResponseText = aiResponseText.replace(/^"(.*)"$/, '$1');
         //console.log('AI Response: ' + aiResponseText);
-        await recordTweet(promptText[1].content, aiResponseText);
+        //await recordTweet(promptText[1].content, aiResponseText);
 
         tagArray = selectTags(getRandomIntBetween(1, 3));
         var sendText;
@@ -185,7 +185,7 @@ async function getReplyText(originalText, replyAccountName) {
     });
     let aiResponse = await response;
     let aiResponseText = aiResponse.data.choices[0].message.content;
-    await recordReply(promptText[1].content, aiResponseText);
+    //await recordReply(promptText[1].content, aiResponseText);
     aiResponseText = aiResponseText.replace(/^"(.*)"$/, '$1');
 
     //console.log(response);
