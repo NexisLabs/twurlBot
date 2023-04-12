@@ -83,17 +83,17 @@ async function getTweetText() {
         var randomFlag = getRandomInt(100);
         if(randomFlag > 90) {
             promptText = [
-                {"role": "system", "content": "You are a " + adder + " twitter personality."},
+                {"role": "system", "content": "You are a " + adder + " person."},
                 {"role": "user", "content": "Create a " + adder + " " + sentiment + " tweet about how your day is going and include hashtags similar to the following: " + tagText},
             ];
         } else if (randomFlag > 25 && randomFlag <= 90) {
              promptText = [
-                {"role": "system", "content": "You are a " + adder + " twitter personality."},
+                {"role": "system", "content": "You are a " + adder + " person."},
                 {"role": "user", "content": "Create a " + adder + " " + sentiment + " tweet about the following while using different words and some of the same hashtags: " + tagText},
             ];
         } else {
             promptText = [
-                {"role": "system", "content": "You are a " + adder + " twitter personality."},
+                {"role": "system", "content": "You are a " + adder + " person."},
                 {"role": "user", "content": requestStatement + " using a " + adder + " " + sentiment + " tone"},
             ];
         }
@@ -161,11 +161,19 @@ async function getReplyText(originalText, replyAccountName) {
     var replyMediaLink;
 
 //    var promptText = "You: Reply to the following tweet in a " + adder + " " + sentiment + " manner and include any similar hashtags: " + originalText + "\nMe:";
-
-    var promptText = [
-            {"role": "system", "content": "You are a " + adder + " twitter personality."},
-            {"role": "user", "content": "Reply to the following tweet in a " + adder + " " + sentiment + " manner and include any similar hashtags: " + originalText},
+    var promptText;
+    var randomFlag = getRandomInt(100);
+    if(randomFlag > 90) {
+        promptText = [
+            {"role": "system", "content": "You are a " + adder + " person."},
+            {"role": "user", "content": "Reply to the following tweet in a " + adder + " " + sentiment + " manner: " + originalText},
         ];
+    } else {
+         promptText = [
+            {"role": "system", "content": "You are a " + adder + " person with one word responses."},
+            {"role": "user", "content": "Reply to the following tweet in a " + adder + " " + sentiment + " manner with one word: " + originalText},
+        ];
+    }
     /*if(getRandomInt(100) > 65) {
         maxTokens = 40;
     } else {
