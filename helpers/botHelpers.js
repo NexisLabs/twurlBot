@@ -323,6 +323,7 @@ async function scrapeNewsLinks(url) {
           filteredArray = filteredArray.filter(e => e !== '#');
           filteredArray = filteredArray.filter(e => !e.includes('category'));
           filteredArray = filteredArray.filter(e => e.includes('-'));
+          filteredArray = filteredArray.filter(e => e.includes(url));
           filteredArray = filteredArray.filter(e => !e.includes('admin'));
           filteredArray = filteredArray.filter(e => !e.includes('about-us'));
           filteredArray = filteredArray.filter(e => !e.includes('privacy-policy'));
