@@ -1,4 +1,4 @@
-const { getRandomPhoto, getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getBannerPhoto, getProfilePhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('/home/twitbot/twurlBot/helpers/botHelpers.js');
+const { getRandomPhoto, getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getBannerPhoto, getProfilePhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('./helpers/botHelpers.js');
 const {Client } = require("pg");
 const axios = require('axios');
 const Fakerator = require("fakerator");
@@ -10,9 +10,8 @@ const { Configuration, OpenAIApi } = require("openai");
 const puppeteer = require('puppeteer-extra')
 const request = require("request");
 const CryptoJS = require('crypto-js');
-const phoneapikey = '31L4HGaqnv1SDgc-4mJL9CYC-Hwbm64hn-9mrsaL25-amw4v1dtdHmhvNg';
-const profilesPath = '/mnt/blockstorage/twitbot/profileScraping/instagramProfiles/';
-
+//const phoneapikey = '31L4HGaqnv1SDgc-4mJL9CYC-Hwbm64hn-9mrsaL25-amw4v1dtdHmhvNg';
+//const profilesPath = '/mnt/blockstorage/twitbot/profileScraping/instagramProfiles/';
 //const botData = require('/home/twitbot/twurlBot/botData.json');
 //const tags = botData.tags;
 var loginArray, botData, tags;
@@ -25,6 +24,7 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 
 async function start() {
+    while(true) {
     var profileUpdateFlag = false;
     var imageProfileName = false;
     botData = await getRemoteBotData();
@@ -32,7 +32,7 @@ async function start() {
 
     loginArray = await getRemoteLogins();
     let randomAccount = loginArray[getRandomInt(loginArray.length)];
-    let photoFlag = getRandomInt(100);
+    /*let photoFlag = getRandomInt(100);
     if(photoFlag > 80) {
         imageProfileName = await getImageProfile(randomAccount.email);
         if(imageProfileName != false) {
@@ -55,19 +55,20 @@ async function start() {
                 console.log('Profile update not needed');
             }
         }
-    }
-    //imageProfileName = false;
-    //profileUpdateFlag = false;
+    }*/
+    imageProfileName = false;
+    profileUpdateFlag = false;
     await twitterLogin(profileUpdateFlag, imageProfileName, randomAccount.username, randomAccount.password, randomAccount.email, randomAccount.useragent, randomAccount.proxy);
-    process.exit(0);
+    }
+    //process.exit(0);
 }
 
 // random delay, then start running!
-let randomDelay = getRandomInt(200000);
-console.log('Delaying runtime by ' + (randomDelay/1000) + ' seconds');
-setTimeout(() => {
+//let randomDelay = getRandomInt(200000);
+//console.log('Delaying runtime by ' + (randomDelay/1000) + ' seconds');
+//setTimeout(() => {
     start();
-}, randomDelay)
+//}, randomDelay)
 
 const decryptWithAES = (ciphertext, passphrase) => {
   const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase);
@@ -80,7 +81,8 @@ async function gracefulExit(browser, proxyChain, proxyUrl, message) {
     await browser.close();
     await proxyChain.closeAnonymizedProxy(proxyUrl, true);
     console.log('Graceful exit initiated - ' + message);
-    process.exit(1);
+    start();
+    //process.exit(1);
 }
 
 async function twitterLogin (profileUpdateFlag, imageProfileName, username, password, email, useragent, proxyString) {
@@ -111,6 +113,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
     if (nextButton) {
         await nextButton.click();
     } else { gracefulExit(browser, proxyChain, proxyUrl, 'Login page next button not found - Exiting'); }
+    //await page.waitForNavigation();
     await page.waitForTimeout(4000)
 
     await page.type('input[autocomplete="current-password"]', password, { delay: 200 });
@@ -120,13 +123,13 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         await loginButton.click();
     } else { gracefulExit(browser, proxyChain, proxyUrl, 'Login button not found - Exiting'); }
 
-    await page.waitForTimeout(20000);
+    await customWaitForText(page, 'happening?', 20, 'straightLogin');
+    //await customWaitForText(page, 'Welcome back', 20, 'straightLogin');
+    //await page.waitForNavigation({waitUntil: 'networkidle0'})
+    //await page.waitForTimeout(20000);
     await checkForCookiesButton(page);
     let html = await page.content();
 
-    //let emailVerifyStatus = await searchString(html, 'Verify your identity by entering the email address associated with your Twitter account');
-    //if(emailVerifyStatus){ gracefulExit(browser, proxyChain, proxyUrl, 'Account needs email verification - Exiting'); }
-    //let html = await page.content();
     let emailVerifyStatus = await searchString(html, 'Verify your identity by entering the email address associated with your Twitter account');
     if(emailVerifyStatus){
         console.log('Account needs email verification');
@@ -138,7 +141,9 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
             console.log('Email Next Button Found!');
             await emailNextButton.click();
         }
-        await page.waitForTimeout(20000)
+        //await page.waitForNavigation({waitUntil: 'networkidle2'})
+        //await page.waitForTimeout(20000)
+        await customWaitForText(page, 'happening?', 20, 'straightLoginEmail');
     }
 
     let suspendedStatus = await searchString(html, 'permanently suspended');
@@ -314,8 +319,11 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         try {
         var actionFlag10 = getRandomInt(actionConstant);
         if(actionFlag10 < (botData.standardTweetRate * actionConstant)) {
-            await page.goto('https://twitter.com/compose/tweet');
-            await page.waitForTimeout(20000)
+            await page.goto('https://twitter.com/compose/tweet', {waitUntil: 'networkidle2'});
+            await customWaitForText(page, 'happening?', 20, '10');
+ 
+            //await page.goto('https://twitter.com/compose/tweet');
+            //await page.waitForTimeout(20000)
             await checkForCookiesButton(page);
 
             const closeButtons = await page.$$('div[aria-label="Close"]');
@@ -329,8 +337,10 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                     console.log('Close button clicked - Number: ' + i);
                 }
             }
-            await page.goto('https://twitter.com/compose/tweet');
-            await page.waitForTimeout(20000)
+            await page.goto('https://twitter.com/compose/tweet', {waitUntil: 'networkidle2'});
+            await customWaitForText(page, 'happening?', 20, '10');
+            //await page.goto('https://twitter.com/compose/tweet');
+            //await page.waitForTimeout(20000)
             await checkForCookiesButton(page);
 
             const [maybeLaterButton] = await page.$x("//span[contains(., 'Maybe later')]");
@@ -398,11 +408,11 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 }
             }
             console.log('Tweet text entered');
-            await page.waitForTimeout(5000)
+            await page.waitForTimeout(1000)
             await page.keyboard.press('Enter');
-            await page.waitForTimeout(5000)
+            await page.waitForTimeout(1000)
             await page.keyboard.press('Enter');
-            await page.waitForTimeout(5000)
+            await page.waitForTimeout(1000)
 
             const [tweetButton] = await page.$x("//span[contains(., 'Tweet')]");
             if (tweetButton) {
@@ -411,7 +421,8 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
             }
             console.log('Tweet Sent!');
             await reportStatus('10', 'success');
-            await page.waitForTimeout(10000)
+            //await page.waitForNavigation({waitUntil: 'networkidle2'})
+            //await page.waitForTimeout(10000)
         }
         }catch(err) {
             console.log('10 Caught Error: ' + err);
@@ -427,23 +438,34 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
             while(loopCount > 0) {
             loopCount--;
             var groupAccountToReply = loginArray[getRandomInt(loginArray.length)].username;
-            await page.goto('https://twitter.com/' + groupAccountToReply);
-            await page.waitForTimeout(60000)
+            await page.goto('https://twitter.com/' + groupAccountToReply, {waitUntil: 'networkidle2'});
+            //await customWaitForText(page, groupAccountToReply, 60, '10');
+
+            //await page.goto('https://twitter.com/' + groupAccountToReply);
+            //await page.waitForTimeout(60000)
+
             await checkForCookiesButton(page);
             let preGroupReplyHtml = await page.content();
             let groupReplyStatus1 = await searchString(preGroupReplyHtml, 'aria-label="Follow @' + groupAccountToReply);
             let groupReplyStatus2 = await searchString(preGroupReplyHtml, 'aria-label="Following @' + groupAccountToReply);
             var groupReplyButtons = await page.$$('div[data-testid="reply"]');
-            await page.waitForTimeout(10000)
+
+            var waitCounter = 0;
+            while(groupReplyButtons.length <= 0 && waitCounter < 60) {
+                await page.waitForTimeout(5000)
+                groupReplyButtons = await page.$$('div[data-testid="reply"]');
+                waitCounter += 5;
+            }
+            //await page.waitForTimeout(10000)
             if(groupReplyButtons && (groupReplyStatus1 || groupReplyStatus2)) {
                 console.log('Group reply buttons detection successful - Count: ' + groupReplyButtons.length);
                 var upperLimit = 5;
                 if(groupReplyButtons.length < 5) { upperLimit = groupReplyButtons.length; }
                 let randomReply = getRandomInt(upperLimit);
-                await page.waitForTimeout(10000);
+                //await page.waitForTimeout(10000);
                 await groupReplyButtons[randomReply].click({delay: 5000});
                 console.log('Successfully clicked group reply button - Index: ' + randomReply);
-                await page.waitForTimeout(30000);
+                //await page.waitForTimeout(30000);
 
                 const tweetTextArray = await page.evaluate(() => {
                     const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
@@ -462,11 +484,11 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                         await replyTextBox.click({ delay: 500 });
                         await replyTextBox.type(replyText, { delay: 200 });
                         console.log('Reply text entered');
-                        await page.waitForTimeout(10000)
+                        await page.waitForTimeout(1000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(10000)
+                        await page.waitForTimeout(1000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(30000)
+                        await page.waitForTimeout(1000)
 
                         //const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
                         const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
@@ -477,7 +499,8 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                             await replyButton.click();
                             console.log('Reply Sent!');
                             await reportStatus('3_1', 'success');
-                            await page.waitForTimeout(10000)
+                            //await page.waitForNavigation({waitUntil: 'networkidle2'})
+                            //await page.waitForTimeout(10000)
                             break;
                         } else {
                             console.log('Send Reply Button Not Found');
@@ -514,23 +537,31 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
             while(loopCount > 0) {
             loopCount--;
             var randomAccountToReply = followerList[getRandomInt(followerList.length)].username;
-            await page.goto('https://twitter.com/' + randomAccountToReply);
-            await page.waitForTimeout(60000)
+            await page.goto('https://twitter.com/' + randomAccountToReply, {waitUntil: 'networkidle2'});
+            //await page.goto('https://twitter.com/' + randomAccountToReply);
+            //await page.waitForTimeout(60000)
+            
             await checkForCookiesButton(page);
             let preRandomReplyHtml = await page.content();
             let randomReplyStatus1 = await searchString(preRandomReplyHtml, 'aria-label="Follow @' + randomAccountToReply);
             let randomReplyStatus2 = await searchString(preRandomReplyHtml, 'aria-label="Following @' + randomAccountToReply);
             var randomReplyButtons = await page.$$('div[data-testid="reply"]');
-            await page.waitForTimeout(10000)
+            //await page.waitForTimeout(10000)
+            var waitCounter = 0;
+            while(randomReplyButtons.length <= 0 && waitCounter < 60) {
+                await page.waitForTimeout(5000)
+                randomReplyButtons = await page.$$('div[data-testid="reply"]');
+                waitCounter += 5;
+            }
             if(randomReplyButtons && (randomReplyStatus1 || randomReplyStatus2)) {
                 console.log('Random reply buttons detection successful - Count: ' + randomReplyButtons.length);
                 var upperLimit = 5;
                 if(randomReplyButtons.length < 5) { upperLimit = randomReplyButtons.length; }
                 let randomReply = getRandomInt(upperLimit);
-                await page.waitForTimeout(10000);
+                //await page.waitForTimeout(10000);
                 await randomReplyButtons[randomReply].click({delay: 5000});
                 console.log('Successfully clicked random reply button - Index: ' + randomReply);
-                await page.waitForTimeout(30000);
+                //await page.waitForTimeout(30000);
 
                 const tweetTextArray = await page.evaluate(() => {
                     const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
@@ -548,11 +579,11 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                         await replyTextBox.click({ delay: 500 });
                         await replyTextBox.type(replyText, { delay: 200 });
                         console.log('Reply text entered');
-                        await page.waitForTimeout(10000)
+                        await page.waitForTimeout(1000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(10000)
+                        await page.waitForTimeout(1000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(30000)
+                        await page.waitForTimeout(1000)
                         //const replyButton = await page.$x('div[data-testid="tweetButton"]');
                         const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
                         if (replyButton) {
@@ -560,7 +591,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                             await replyButton.click();
                             console.log('Reply Sent!');
                             await reportStatus('6_1', 'success');
-                            await page.waitForTimeout(10000)
+                            //await page.waitForTimeout(10000)
                             break;
                         } else {
                             console.log('Send Reply Button Not Found');
@@ -594,23 +625,30 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
             while(loopCount > 0) {
             loopCount--;
             var importantAccountToReply = botData.importantTwitterAccounts[getRandomInt(botData.importantTwitterAccounts.length)];
-            await page.goto('https://twitter.com/' + importantAccountToReply);
-            await page.waitForTimeout(60000)
+            //await page.goto('https://twitter.com/' + importantAccountToReply);
+            await page.goto('https://twitter.com/' + importantAccountToReply, {waitUntil: 'networkidle2'});
+            //await page.waitForTimeout(60000)
             await checkForCookiesButton(page);
             let preImportantReplyHtml = await page.content();
             let importantReplyStatus1 = await searchString(preImportantReplyHtml, 'aria-label="Follow ' + importantAccountToReply);
             let importantReplyStatus2 = await searchString(preImportantReplyHtml, 'aria-label="Following ' + importantAccountToReply);
             var importantReplyButtons = await page.$$('div[data-testid="reply"]');
-            await page.waitForTimeout(10000)
+            var waitCounter = 0;
+            while(importantReplyButtons.length <= 0 && waitCounter < 60) {
+                await page.waitForTimeout(5000)
+                importantReplyButtons = await page.$$('div[data-testid="reply"]');
+                waitCounter += 5;
+            }
+            //await page.waitForTimeout(10000)
             if(importantReplyButtons && (importantReplyStatus1 || importantReplyStatus2)) {
                 console.log('Important reply buttons detection successful - Count: ' + importantReplyButtons.length);
                 var upperLimit = 5;
                 if(importantReplyButtons.length < 5) { upperLimit = importantReplyButtons.length; }
                 let randomReply = getRandomInt(upperLimit);
-                await page.waitForTimeout(10000);
+                //await page.waitForTimeout(10000);
                 await importantReplyButtons[randomReply].click({delay: 5000});
                 console.log('Successfully clicked important reply button - Index: ' + randomReply);
-                await page.waitForTimeout(30000);
+                //await page.waitForTimeout(30000);
 
                 const tweetTextArray = await page.evaluate(() => {
                     const tds = Array.from(document.querySelectorAll('div[data-testid="tweetText"]'))
@@ -628,11 +666,11 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                         await replyTextBox.click({ delay: 500 });
                         await replyTextBox.type(replyText, { delay: 200 });
                         console.log('Reply text entered');
-                        await page.waitForTimeout(10000)
+                        await page.waitForTimeout(1000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(10000)
+                        await page.waitForTimeout(1000)
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(30000)
+                        await page.waitForTimeout(1000)
                         //const replyButton = await page.$x('div[data-testid="tweetButton"]');
                         const [replyButton] = await page.$x("//span[contains(., 'Reply')]");
                         if (replyButton) {
@@ -640,7 +678,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                             await replyButton.click();
                             console.log('Reply Sent!');
                             await reportStatus('9_1', 'success');
-                            await page.waitForTimeout(10000)
+                            //await page.waitForTimeout(10000)
                             break;
                         } else {
                             console.log('Send Reply Button Not Found');
@@ -673,8 +711,11 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         for(let i = 0; i < actionCount1; i++) {
             console.log('Action 1 - groupFollowRate Triggered - Count: ' + i);
             var groupAccountToFollow = loginArray[getRandomInt(loginArray.length)].username;
-            await page.goto('https://twitter.com/' + groupAccountToFollow);
-            await page.waitForTimeout(30000)
+            //await page.goto('https://twitter.com/' + groupAccountToFollow);
+            await page.goto('https://twitter.com/' + groupAccountToFollow, {waitUntil: 'networkidle2'});
+            await customWaitForText(page, groupAccountToFollow, 30, '1');
+
+            //await page.waitForTimeout(30000)
             await checkForCookiesButton(page);
             let preGroupFollowHtml = await page.content();
             let groupFollowStatus = await searchString(preGroupFollowHtml, 'aria-label="Follow @' + groupAccountToFollow);
@@ -684,7 +725,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 await groupFollowButton.click({delay: 5000});
                 console.log('Group Follow Successful For ' + groupAccountToFollow);
                 await reportStatus('1', 'success');
-                await page.waitForTimeout(10000)
+                //await page.waitForTimeout(10000)
             } else {
                 console.log('Follow Button Not Found For ' + groupAccountToFollow);
                 await reportStatus('1', 'failure');
@@ -702,24 +743,32 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         if(actionFlag2 < (botData.groupLikeRate * actionConstant)) {
             console.log('Action 2 - groupLikeRate Triggered');
             var groupAccountToLike = loginArray[getRandomInt(loginArray.length)].username;
-            await page.goto('https://twitter.com/' + groupAccountToLike);
-            await page.waitForTimeout(30000)
+            //await page.goto('https://twitter.com/' + groupAccountToLike);
+            await page.goto('https://twitter.com/' + groupAccountToLike, {waitUntil: 'networkidle2'});
+            //await customWaitForText(page, groupAccountToLike, 30, '1');
+            //await page.waitForTimeout(30000)
             await checkForCookiesButton(page);
             let preGroupLikeHtml = await page.content();
             let groupLikeStatus1 = await searchString(preGroupLikeHtml, 'aria-label="Follow @' + groupAccountToLike);
             let groupLikeStatus2 = await searchString(preGroupLikeHtml, 'aria-label="Following @' + groupAccountToLike);
             var groupLikeButtons = await page.$$('div[data-testid="like"]');
+            var waitCounter = 0;
+            while(groupLikeButtons.length <= 0 && waitCounter < 30) {
+                await page.waitForTimeout(5000)
+                groupLikeButtons = await page.$$('div[data-testid="like"]');
+                waitCounter += 5;
+            }
             if(groupLikeButtons && (groupLikeStatus1 || groupLikeStatus2)) {
                 console.log('Group like buttons detection successful - Count: ' + groupLikeButtons.length);
                 var upperLimit = 5;
                 if(groupLikeButtons.length < 5) { upperLimit = groupLikeButtons.length; }
                 let randomLikesAmount = getRandomIntBetween(1, upperLimit);
                 for(var i = 0; i < randomLikesAmount; i++) {
-                    await page.waitForTimeout(10000);
+                    //await page.waitForTimeout(10000);
                     await groupLikeButtons[0].click({delay: 5000});
                     console.log('Successfully liked group member tweet - Count: ' + i);
                     await reportStatus('2', 'success');
-                    await page.waitForTimeout(10000);
+                    //await page.waitForTimeout(10000);
                     groupLikeButtons = await page.$$('div[data-testid="like"]');
                 }
             } else {
@@ -738,29 +787,36 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         if(actionFlag3 < (botData.groupRetweetRate * actionConstant)) {
             console.log('Action 3 - groupRetweetRate Triggered');
             var groupAccountToRetweet = loginArray[getRandomInt(loginArray.length)].username;
-            await page.goto('https://twitter.com/' + groupAccountToRetweet);
-            await page.waitForTimeout(30000)
+            //await page.goto('https://twitter.com/' + groupAccountToRetweet);
+            await page.goto('https://twitter.com/' + groupAccountToRetweet, {waitUntil: 'networkidle2'});
+            //await page.waitForTimeout(30000)
             await checkForCookiesButton(page);
             let preGroupRetweetHtml = await page.content();
             let groupRetweetStatus1 = await searchString(preGroupRetweetHtml, 'aria-label="Follow @' + groupAccountToRetweet);
             let groupRetweetStatus2 = await searchString(preGroupRetweetHtml, 'aria-label="Following @' + groupAccountToRetweet);
             var groupRetweetButtons = await page.$$('div[data-testid="retweet"]');
+            var waitCounter = 0;
+            while(groupRetweetButtons.length <= 0 && waitCounter < 30) {
+                await page.waitForTimeout(5000)
+                groupRetweetButtons = await page.$$('div[data-testid="retweet"]');
+                waitCounter += 5;
+            }
             if(groupRetweetButtons && (groupRetweetStatus1 || groupRetweetStatus2)) {
                 console.log('Group retweet buttons detection successful - Count: ' + groupRetweetButtons.length);
                 var upperLimit = 4;
                 if(groupRetweetButtons.length < 4) { upperLimit = groupRetweetButtons.length; }
                 let randomRetweetsAmount = getRandomIntBetween(1, upperLimit);
                 for(var i = 0; i < randomRetweetsAmount; i++) {
-                    await page.waitForTimeout(10000);
+                    //await page.waitForTimeout(10000);
                     await groupRetweetButtons[0].click({delay: 5000});
                     console.log('Successfully clicked group retweet button - Count: ' + i);
-                    await page.waitForTimeout(5000);
+                    //await page.waitForTimeout(5000);
                     const [groupRetweetButton] = await page.$x("//span[contains(., 'Retweet')]");
                     if(groupRetweetButton) {
                         console.log('Group retweet button confirmation found');
-                        await page.waitForTimeout(10000);
+                        //await page.waitForTimeout(10000);
                         await groupRetweetButton.click({delay: 5000});
-                        await page.waitForTimeout(5000);
+                        //await page.waitForTimeout(5000);
                         console.log('Group retweet confirmation button clicked - retweet successful');
                         await reportStatus('3', 'success');
                     } else {
@@ -791,7 +847,9 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
             for(var i = 0; i < randomArraySize; i++) {
                 let randomFollowerName = followerList[getRandomInt(followerList.length)].username;
                 console.log('Attempting to add follower - Username: ' + randomFollowerName);
-                await page.goto('https://twitter.com/' + randomFollowerName);
+                //await page.goto('https://twitter.com/' + randomFollowerName);
+                await page.goto('https://twitter.com/' + randomFollowerName, {waitUntil: 'networkidle2'});
+                await customWaitForText(page, randomFollowerName, 30, '1');
 
                 let randomFollowStatus = await customWaitForText(page, 'aria-label="Follow @' + randomFollowerName, 40, 'preRandomFollow');
                 const [randomFollowButton] = await page.$x("//span[contains(., 'Follow')]");
@@ -801,7 +859,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                     await randomFollowButton.click({delay: 5000});
                     console.log('Random Follow Successful For ' + randomFollowerName);
                     await reportStatus('4', 'success');
-                    await page.waitForTimeout(10000)
+                    //await page.waitForTimeout(10000)
                 } else {
                     console.log('Random Follow Failed For ' + randomFollowerName);
                     await reportStatus('4', 'failed');
@@ -821,24 +879,32 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
             let followerList = await getFollowerList();
             console.log('Follower List Received - Length: ' + followerList.length);
             var randomAccountToLike = followerList[getRandomInt(followerList.length)].username;
-            await page.goto('https://twitter.com/' + randomAccountToLike);
-            await page.waitForTimeout(30000)
+            //await page.goto('https://twitter.com/' + randomAccountToLike);
+            await page.goto('https://twitter.com/' + randomAccountToLike, {waitUntil: 'networkidle2'});
+
+            //await page.waitForTimeout(30000)
             await checkForCookiesButton(page);
             let preRandomLikeHtml = await page.content();
             let randomLikeStatus1 = await searchString(preRandomLikeHtml, 'aria-label="Follow @' + randomAccountToLike);
             let randomLikeStatus2 = await searchString(preRandomLikeHtml, 'aria-label="Following @' + randomAccountToLike);
             var randomLikeButtons = await page.$$('div[data-testid="like"]');
+            var waitCounter = 0;
+            while(randomLikeButtons.length <= 0 && waitCounter < 30) {
+                await page.waitForTimeout(5000)
+                randomLikeButtons = await page.$$('div[data-testid="like"]');
+                waitCounter += 5;
+            }
             if(randomLikeButtons && (randomLikeStatus1 || randomLikeStatus2)) {
                 console.log('Random like buttons detection successful - Count: ' + randomLikeButtons.length);
                 var upperLimit = 5;
                 if(randomLikeButtons.length < 5) { upperLimit = randomLikeButtons.length; }
                 let randomLikesAmount = getRandomIntBetween(1, upperLimit);
                 for(var i = 0; i < randomLikesAmount; i++) {
-                    await page.waitForTimeout(10000);
+                    //await page.waitForTimeout(10000);
                     await randomLikeButtons[0].click({delay: 5000});
                     console.log('Successfully liked random member tweet - Count: ' + i);
                     await reportStatus('5', 'success');
-                    await page.waitForTimeout(10000);
+                    //await page.waitForTimeout(10000);
                     randomLikeButtons = await page.$$('div[data-testid="like"]');
                 }
             } else {
@@ -859,29 +925,37 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
             let followerList = await getFollowerList();
             console.log('Follower List Received - Length: ' + followerList.length);
             var randomAccountToRetweet = followerList[getRandomInt(followerList.length)].username;
-            await page.goto('https://twitter.com/' + randomAccountToRetweet);
-            await page.waitForTimeout(30000)
+            //await page.goto('https://twitter.com/' + randomAccountToRetweet);
+            await page.goto('https://twitter.com/' + randomAccountToRetweet, {waitUntil: 'networkidle2'});
+
+            //await page.waitForTimeout(30000)
             await checkForCookiesButton(page);
             let preRandomRetweetHtml = await page.content();
             let randomRetweetStatus1 = await searchString(preRandomRetweetHtml, 'aria-label="Follow @' + randomAccountToRetweet);
             let randomRetweetStatus2 = await searchString(preRandomRetweetHtml, 'aria-label="Following @' + randomAccountToRetweet);
             var randomRetweetButtons = await page.$$('div[data-testid="retweet"]');
+            var waitCounter = 0;
+            while(randomRetweetButtons.length <= 0 && waitCounter < 30) {
+                await page.waitForTimeout(5000)
+                randomRetweetButtons = await page.$$('div[data-testid="retweet"]');
+                waitCounter += 5;
+            }
             if(randomRetweetButtons && (randomRetweetStatus1 || randomRetweetStatus2)) {
                 console.log('Random retweet buttons detection successful - Count: ' + randomRetweetButtons.length);
                 var upperLimit = 4;
                 if(randomRetweetButtons.length < 4) { upperLimit = randomRetweetButtons.length; }
                 let randomRetweetsAmount = getRandomIntBetween(1, upperLimit);
                 for(var i = 0; i < randomRetweetsAmount; i++) {
-                    await page.waitForTimeout(10000);
+                    //await page.waitForTimeout(10000);
                     await randomRetweetButtons[0].click({delay: 5000});
                     console.log('Successfully clicked random retweet button - Count: ' + i);
-                    await page.waitForTimeout(5000);
+                    //await page.waitForTimeout(5000);
                     const [randomRetweetButton] = await page.$x("//span[contains(., 'Retweet')]");
                     if(randomRetweetButton) {
                         console.log('Random retweet button confirmation found');
-                        await page.waitForTimeout(10000);
+                        //await page.waitForTimeout(10000);
                         await randomRetweetButton.click({delay: 5000});
-                        await page.waitForTimeout(5000);
+                        //await page.waitForTimeout(5000);
                         console.log('Random retweet confirmation button clicked - retweet successful');
                         await reportStatus('6', 'success');
                     } else {
@@ -906,8 +980,11 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         if(actionFlag7 < (botData.importantFollowRate * actionConstant)) {
             console.log('Action 7 - importantFollowRate Triggered');
             var importantAccountToFollow = botData.importantTwitterAccounts[getRandomInt(botData.importantTwitterAccounts.length)];
-            await page.goto('https://twitter.com/' + importantAccountToFollow);
-            await page.waitForTimeout(30000)
+            //await page.goto('https://twitter.com/' + importantAccountToFollow);
+            await page.goto('https://twitter.com/' + importantAccountToFollow, {waitUntil: 'networkidle2'});
+            await customWaitForText(page, importantAccountToFollow, 30, '1');
+
+            //await page.waitForTimeout(30000)
             await checkForCookiesButton(page);
             let preImportantFollowHtml = await page.content();
             let importantFollowStatus = await searchString(preImportantFollowHtml, 'aria-label="Follow ' + importantAccountToFollow);
@@ -917,7 +994,7 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
                 await importantFollowButton.click({delay: 5000});
                 console.log('Important Follow Successful For ' + importantAccountToFollow);
                 await reportStatus('7', 'success');
-                await page.waitForTimeout(10000)
+                //await page.waitForTimeout(10000)
             } else {
                 console.log('Follow Button Not Found For ' + importantAccountToFollow);
                 await reportStatus('7', 'failed');
@@ -934,24 +1011,32 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         if(actionFlag8 < (botData.importantLikeRate * actionConstant)) {
             console.log('Action 8 - importantLikeRate Triggered');
             var importantAccountToLike = botData.importantTwitterAccounts[getRandomInt(botData.importantTwitterAccounts.length)];
-            await page.goto('https://twitter.com/' + importantAccountToLike);
-            await page.waitForTimeout(30000)
+            //await page.goto('https://twitter.com/' + importantAccountToLike);
+            await page.goto('https://twitter.com/' + importantAccountToLike, {waitUntil: 'networkidle2'});
+
+            //await page.waitForTimeout(30000)
             await checkForCookiesButton(page);
             let preImportantLikeHtml = await page.content();
             let importantLikeStatus1 = await searchString(preImportantLikeHtml, 'aria-label="Follow ' + importantAccountToLike);
             let importantLikeStatus2 = await searchString(preImportantLikeHtml, 'aria-label="Following ' + importantAccountToLike);
             var importantLikeButtons = await page.$$('div[data-testid="like"]');
+            var waitCounter = 0;
+            while(importantLikeButtons.length <= 0 && waitCounter < 30) {
+                await page.waitForTimeout(5000)
+                importantLikeButtons = await page.$$('div[data-testid="like"]');
+                waitCounter += 5;
+            }
             if(importantLikeButtons && (importantLikeStatus1 || importantLikeStatus2)) {
                 console.log('Important like buttons detection successful - Count: ' + importantLikeButtons.length);
                 var upperLimit = 5;
                 if(importantLikeButtons.length < 5) { upperLimit = importantLikeButtons.length; }
                 let randomLikesAmount = getRandomIntBetween(1, upperLimit);
                 for(var i = 0; i < randomLikesAmount; i++) {
-                    await page.waitForTimeout(10000);
+                    //await page.waitForTimeout(10000);
                     await importantLikeButtons[0].click({delay: 5000});
                     console.log('Successfully liked important member tweet - Count: ' + i);
                     await reportStatus('8', 'success');
-                    await page.waitForTimeout(10000);
+                    //await page.waitForTimeout(10000);
                     importantLikeButtons = await page.$$('div[data-testid="like"]');
                 }
             } else {
@@ -970,29 +1055,37 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
         if(actionFlag9 < (botData.importantRetweetRate * actionConstant)) {
             console.log('Action 9 - importantRetweetRate Triggered');
             var importantAccountToRetweet = botData.importantTwitterAccounts[getRandomInt(botData.importantTwitterAccounts.length)];
-            await page.goto('https://twitter.com/' + importantAccountToRetweet);
-            await page.waitForTimeout(30000)
+            //await page.goto('https://twitter.com/' + importantAccountToRetweet);
+            await page.goto('https://twitter.com/' + importantAccountToRetweet, {waitUntil: 'networkidle2'});
+
+            //await page.waitForTimeout(30000)
             await checkForCookiesButton(page);
             let preImportantRetweetHtml = await page.content();
             let importantRetweetStatus1 = await searchString(preImportantRetweetHtml, 'aria-label="Follow ' + importantAccountToRetweet);
             let importantRetweetStatus2 = await searchString(preImportantRetweetHtml, 'aria-label="Following ' + importantAccountToRetweet);
             var importantRetweetButtons = await page.$$('div[data-testid="retweet"]');
+            var waitCounter = 0;
+            while(importantRetweetButtons.length <= 0 && waitCounter < 30) {
+                await page.waitForTimeout(5000)
+                importantRetweetButtons = await page.$$('div[data-testid="retweet"]');
+                waitCounter += 5;
+            }
             if(importantRetweetButtons && (importantRetweetStatus1 || importantRetweetStatus2)) {
                 console.log('Important retweet buttons detection successful - Count: ' + importantRetweetButtons.length);
                 var upperLimit = 4;
                 if(importantRetweetButtons.length < 4) { upperLimit = importantRetweetButtons.length; }
                 let randomRetweetsAmount = getRandomIntBetween(1, upperLimit);
                 for(var i = 0; i < randomRetweetsAmount; i++) {
-                    await page.waitForTimeout(10000);
+                    //await page.waitForTimeout(10000);
                     await importantRetweetButtons[0].click({delay: 5000});
                     console.log('Successfully clicked important retweet button - Count: ' + i);
-                    await page.waitForTimeout(5000);
+                    //await page.waitForTimeout(5000);
                     const [importantRetweetButton] = await page.$x("//span[contains(., 'Retweet')]");
                     if(importantRetweetButton) {
                         console.log('Important retweet button confirmation found');
-                        await page.waitForTimeout(10000);
+                        //await page.waitForTimeout(10000);
                         await importantRetweetButton.click({delay: 5000});
-                        await page.waitForTimeout(5000);
+                        //await page.waitForTimeout(5000);
                         console.log('Important retweet confirmation button clicked - retweet successful');
                         await reportStatus('9', 'success');
                     } else {
@@ -1031,7 +1124,10 @@ async function twitterLogin (profileUpdateFlag, imageProfileName, username, pass
     });
     }catch(err) {
         await reportStatus('Login', 'failure');
-        gracefulExit(browser, proxyChain, proxyUrl, err);
+        return new Promise((resolve, reject) => {
+            resolve(false)
+        });
+        //gracefulExit(browser, proxyChain, proxyUrl, err);
     }
 }
 function getLogins(fileLocation) {
@@ -1179,6 +1275,7 @@ async function customWaitForText(page, text, seconds, customName) {
             });
         } else {
             console.log('Still waiting for ' + customName + ' screen - Seconds waited so far: ' + (i * 10));
+            await page.reload();
             //botLog(botName, process.pid, 'Still waiting for ' + customName + ' screen - Seconds waited so far: ' + (i * 10));
         }
         if(i == ((seconds / 10) - 1)) {

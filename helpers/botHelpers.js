@@ -8,14 +8,13 @@ const { Configuration, OpenAIApi } = require("openai");
 const databaseUrl = fs.readFileSync('/home/twitbot/twitBotAI/.databaseurl', 'utf8');
 const myPassword = fs.readFileSync('/home/twitbot/twitBotAI/.password', 'utf8');
 const { getGender } = require('gender-detection-from-name');
-//const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
+const openAiApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
 const CryptoJS = require('crypto-js');
-//const botData = require('/home/twitbot/twurlBot/botData.json');
-//const tags = botData.tags;
 const request = require('request');
 const cheerio = require('cheerio');
 const newsSites = ['https://globaleconomics.news', 'https://fox8.news', 'https://cryptnomics.org/'];
 var botData, tags;
+
 const delay = (t, val) => new Promise(resolve => setTimeout(resolve, t, val));
 
 const decryptWithAES = (ciphertext, passphrase) => {
@@ -30,7 +29,7 @@ async function start() {
 start();
 
 async function getTwitterBio(gender, bioTopics) {
-    const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
+    const myOpenAIApiKey = openAiApiKey;
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const configuration = new Configuration({
@@ -62,7 +61,7 @@ async function getTwitterBio(gender, bioTopics) {
 }
 
 async function getTweetText() {
-    const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
+    const myOpenAIApiKey = openAiApiKey;
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const requestStatement = botData.requestStatements[getRandomInt(botData.requestStatements.length)];
@@ -149,9 +148,9 @@ async function getTweetText() {
         });
     }
 }
-
 async function getReplyText(originalText, replyAccountName) {
-    const myOpenAIApiKey = fs.readFileSync('/home/twitbot/twurlBot/.openAiApiKey', 'utf8');
+    botData = await getRemoteBotData();
+    const myOpenAIApiKey = openAiApiKey
     const sentiment = botData.sentiment[getRandomInt(botData.sentiment.length)];
     const adder = botData.adder[getRandomInt(botData.adder.length)];
     const configuration = new Configuration({
@@ -163,7 +162,7 @@ async function getReplyText(originalText, replyAccountName) {
 //    var promptText = "You: Reply to the following tweet in a " + adder + " " + sentiment + " manner and include any similar hashtags: " + originalText + "\nMe:";
     var promptText;
     var randomFlag = getRandomInt(100);
-    if(randomFlag > 90) {
+    if(randomFlag > 25) {
         promptText = [
             {"role": "system", "content": "You are a " + adder + " person."},
             {"role": "user", "content": "Reply to the following tweet in a " + adder + " " + sentiment + " manner: " + originalText},
@@ -222,15 +221,13 @@ async function getReplyText(originalText, replyAccountName) {
         replyText = replyText.replace('undefined', newsLink);
         replyText = replyText.replace('Undefined', newsLink);
     }
-
-    //replyText = replyText.replace('undefined', '');
-    //replyText = replyText.replace('Undefined', '');
     console.log('Original Tweet Text: ' + originalText);
     console.log('Reply Text: ' + replyText);
     return new Promise((resolve, reject) => {
         resolve(replyText);
     });
 }
+
 async function generateTweetMedia(text) {
   try {
     var randomFlag = getRandomInt(100);
@@ -323,7 +320,6 @@ async function scrapeNewsLinks(url) {
           filteredArray = filteredArray.filter(e => e !== '#');
           filteredArray = filteredArray.filter(e => !e.includes('category'));
           filteredArray = filteredArray.filter(e => e.includes('-'));
-          filteredArray = filteredArray.filter(e => e.includes(url));
           filteredArray = filteredArray.filter(e => !e.includes('admin'));
           filteredArray = filteredArray.filter(e => !e.includes('about-us'));
           filteredArray = filteredArray.filter(e => !e.includes('privacy-policy'));
@@ -591,7 +587,8 @@ function getRemoteBotData() {
             data += stream;
         });
         res.on('end', function() {
-            var decryptedData = decryptWithAES(data, myPassword);
+            //console.log(data);
+            var decryptedData = decryptWithAES(data.toString(), myPassword);
             json_data = JSON.parse(decryptedData);
                         resolve(json_data);
         });
