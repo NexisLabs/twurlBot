@@ -19,18 +19,24 @@ console.log('Starting Bot - Name: ' + botName + ' PID: ' + process.pid)
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 
-async function start () {
+async function initialize () {
   botData = await getRemoteBotData()
   tags = botData.tags
   loginArray = await getRemoteLogins()
-
+  start();
+  start();
+  start();
+  start();
+}
+async function start() {
   while (true) {
     const randomAccount = loginArray[getRandomInt(loginArray.length)]
     await twitterLogin(randomAccount.username, randomAccount.password, randomAccount.email, randomAccount.useragent, randomAccount.proxy)
   }
 }
-
-start()
+initialize();
+//start()
+//botStart();
 
 const decryptWithAES = (ciphertext, passphrase) => {
   const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase)
@@ -43,7 +49,7 @@ async function gracefulExit (browser, proxyChain, proxyUrl, message) {
   await browser.close()
   await proxyChain.closeAnonymizedProxy(proxyUrl, true)
   console.log('Graceful exit initiated - ' + message)
-  start()
+  //start()
   // process.exit(1);
 }
 
