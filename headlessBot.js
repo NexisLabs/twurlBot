@@ -195,22 +195,25 @@ async function sendReply (page, tweetUrl, replyText) {
     try {
       await page.goto(tweetUrl, { waitUntil: 'networkidle2' })
       await checkForCookiesButton(page)
-      const preReplyHtml = await page.content()
-      const preReplyStatus = await searchString(preReplyHtml, 'Replying to @')
+      //const preReplyHtml = await page.content()
+      //const preReplyStatus = await searchString(preReplyHtml, 'Replying to @')
 
       // let textBox = await page.$$('div[data-testid="tweetTextarea_0"]');
       const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]")
       if (replyTextBox) {
         console.log('Reply text box found')
         await replyTextBox.click({ delay: 500 })
-        await replyTextBox.type(replyText, { delay: 200 })
+        await replyTextBox.type(replyText, { delay: 20 })
         console.log('Reply text entered')
-        await page.waitForTimeout(1000)
+        console.log('Reply text: ' + replyText);
+        await page.waitForTimeout(100)
         await page.keyboard.press('Enter')
-        await page.waitForTimeout(1000)
+        await page.waitForTimeout(100)
         await page.keyboard.press('Enter')
-        await page.waitForTimeout(1000)
-        const [replyButton] = await page.$x("//span[contains(., 'Reply')]")
+        await page.waitForTimeout(100)
+        const [replyButton] = await page.$x('div[data-testid="tweetButtonInline"]');
+
+        //const [replyButton] = await page.$x("//span[contains(., 'Reply')]")
         if (replyButton) {
           console.log('Send Reply Button Found!')
           await replyButton.click()
@@ -225,7 +228,6 @@ async function sendReply (page, tweetUrl, replyText) {
         resolve(false)
       }
 
-      // let replyButton = await page.$$('div[data-testid="tweetButtonInline"]');
     } catch (err) {
       console.log('Reply Caught Error: ' + err)
       resolve(false)
@@ -246,7 +248,7 @@ async function sendTweet (page) {
         for (let i = 0; i < closeButtons.length; i++) {
           console.log('Close button detected')
           await closeButtons[i].click()
-          await page.waitForTimeout(5000)
+          //await page.waitForTimeout(5000)
           console.log('Close button clicked - Number: ' + i)
         }
       }
@@ -258,28 +260,28 @@ async function sendTweet (page) {
       if (maybeLaterButton) {
         console.log('Maybe later button detected...clicking')
         await maybeLaterButton.click()
-        await page.waitForTimeout(1000)
+        //await page.waitForTimeout(1000)
       }
 
       const [innactiveTweetButton] = await page.$x("//span[contains(., 'Tweet')]")
       if (innactiveTweetButton) {
         console.log('Innactive Tweet Button Found!')
         await innactiveTweetButton.click()
-        await page.waitForTimeout(1000)
+        //await page.waitForTimeout(1000)
       }
       const [tweetTextBox] = await page.$x("//div[contains(., 'happening?')]")
       if (tweetTextBox) {
         console.log('Tweet text box found')
         await tweetTextBox.click({ delay: 500 })
         const tweetText = await getTweetText()
-        await tweetTextBox.type(tweetText, { delay: 200 })
+        await tweetTextBox.type(tweetText, { delay: 20 })
         console.log('Tweet text entered')
       }
-      await page.waitForTimeout(1000)
+      await page.waitForTimeout(100)
       await page.keyboard.press('Enter')
-      await page.waitForTimeout(1000)
+      await page.waitForTimeout(100)
       await page.keyboard.press('Enter')
-      await page.waitForTimeout(1000)
+      await page.waitForTimeout(100)
       const [tweetButton] = await page.$x("//span[contains(., 'Tweet')]")
       if (tweetButton) {
         console.log('Send Tweet Button Found!')
