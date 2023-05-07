@@ -209,9 +209,9 @@ async function sendReply (page, tweetUrl, replyText) {
         await page.waitForTimeout(100)
         await page.keyboard.press('Enter')
         await page.waitForTimeout(100)
-        const [replyButton] = await page.$x('div[data-testid="tweetButtonInline"]');
+        //const [replyButton] = await page.$x('div[data-testid="tweetButtonInline"]');
 
-        //const [replyButton] = await page.$x("//span[contains(., 'Reply')]")
+        const [replyButton] = await page.$x("//span[contains(., 'Reply')]")
         if (replyButton) {
           console.log('Send Reply Button Found!')
           await replyButton.click()
