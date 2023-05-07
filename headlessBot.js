@@ -25,12 +25,6 @@ async function initialize () {
   loginArray = await getRemoteLogins()
   start();
   start();
-  start();
-  start();
-  start();
-  start();
-  start();
-  start();
 }
 async function start() {
   while (true) {
