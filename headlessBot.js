@@ -27,6 +27,10 @@ async function initialize () {
   start();
   start();
   start();
+  start();
+  start();
+  start();
+  start();
 }
 async function start() {
   while (true) {
