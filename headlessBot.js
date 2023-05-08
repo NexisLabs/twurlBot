@@ -65,7 +65,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
     context.overridePermissions('https://www.twitter.com', ['geolocation', 'notifications'])
     const page = (await browser.pages())[0]
     await page.setUserAgent(useragent)
-    await page.setDefaultNavigationTimeout(300000)
+    await page.setDefaultNavigationTimeout(30000)
 
     await page.goto('https://twitter.com/login', { waitUntil: 'networkidle0' })
     const loginStatus = await customWaitForText(page, 'Phone, email, or username', 20, 'login')
@@ -260,8 +260,9 @@ async function sendReply (page, tweetUrl, replyText) {
       // let textBox = await page.$$('div[data-testid="tweetTextarea_0"]');
 
       const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]")
-      if (replyTextBox) {
-        console.log('Reply text box found')
+      const [replyButton] = await page.$x("//span[contains(., 'Reply')]")
+      if (replyTextBox && replyTextBox) {
+        console.log('Reply text box & button found')
         await replyTextBox.click({ delay: 100 })
         await replyTextBox.type(replyText, { delay: 20 })
         console.log('Reply text entered')
@@ -273,18 +274,17 @@ async function sendReply (page, tweetUrl, replyText) {
         await page.waitForTimeout(100)
         //const [replyButton] = await page.$x('div[data-testid="tweetButtonInline"]');
 
-        const [replyButton] = await page.$x("//span[contains(., 'Reply')]")
-        if (replyButton) {
-          console.log('Send Reply Button Found!')
-          await replyButton.click()
-          console.log('Reply Sent!')
-          resolve(true)
-        } else {
-          console.log('Send Reply Button Not Found')
-          resolve(false)
-        }
+        //if (replyButton) {
+        //  console.log('Send Reply Button Found!')
+        await replyButton.click()
+        console.log('Reply Sent!')
+        resolve(true)
+        //} else {
+         // console.log('Send Reply Button Not Found')
+         // resolve(false)
+        //}
       } else {
-        console.log('Reply Text Box Not Found')
+        console.log('Reply Text Box or Button Not Found')
         resolve(false)
       }
 
