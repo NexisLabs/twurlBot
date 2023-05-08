@@ -150,6 +150,18 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         }
       }
       //}
+      // Action 3.1 - Group Reply
+      //if (getRandomInt(actionConstant) < (botData.groupReplyRate * actionConstant)) {
+      const tweetLikesRetweets = await getRandomReply()
+      const likeRetweetFlag = await sendLikesRetweets(page, tweetLikesRetweets[0], tweetLikesRetweets[1])
+      if (likeRetweetFlag == true) {
+        //await reportStatus('3_1', 'success')
+        console.log('Like/Retweet Success')
+      } else {
+        //await reportStatus('3_1', 'failed')
+        console.log('Like/Retweet Failed')
+      }
+      //}
 
     } else if (phoneVerifyStatus) {
       console.log('Phone number verification needed')
@@ -197,15 +209,12 @@ async function getRandomReply() {
     });
   });
 }
-async function sendReply (page, tweetUrl, replyText) {
+async function sendLikesRetweets (page, tweetUrl) {
   return new Promise(async (resolve, reject) => {
     try {
       await page.goto(tweetUrl, { waitUntil: 'networkidle2' })
       await checkForCookiesButton(page)
-      //const preReplyHtml = await page.content()
-      //const preReplyStatus = await searchString(preReplyHtml, 'Replying to @')
-
-      // let textBox = await page.$$('div[data-testid="tweetTextarea_0"]');
+      try{
       const likeButtons = await page.$$('div[data-testid="like"]');
       const randomLikeButtonsInt = getRandomIntBetween(2, 7);
       if(likeButtons) {
@@ -215,7 +224,11 @@ async function sendReply (page, tweetUrl, replyText) {
           console.log('Like click successful - Index: ' + i)
         }
       }
+      }catch(err) {
+        console.log('Like action error detected: ' + err);
+      }
 
+      try{
       const retweetButtons = await page.$$('div[data-testid="retweet"]');
       const randomRetweetButtonsInt = getRandomIntBetween(2, 7);
       if(retweetButtons) {
@@ -225,6 +238,26 @@ async function sendReply (page, tweetUrl, replyText) {
           console.log('Retweet click successful - Index: ' + i)
         }
       }
+      }catch(err) {
+        console.log('Retweet action error detected: ' + err);
+      }
+      resolve(true);
+    } catch (err) {
+      console.log('Like/Retweet Caught Error: ' + err)
+      resolve(false)
+    }
+  })
+}
+
+async function sendReply (page, tweetUrl, replyText) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await page.goto(tweetUrl, { waitUntil: 'networkidle2' })
+      await checkForCookiesButton(page)
+      //const preReplyHtml = await page.content()
+      //const preReplyStatus = await searchString(preReplyHtml, 'Replying to @')
+
+      // let textBox = await page.$$('div[data-testid="tweetTextarea_0"]');
 
       const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]")
       if (replyTextBox) {
