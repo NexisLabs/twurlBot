@@ -54,11 +54,12 @@ async function gracefulExit (browser, proxyChain, proxyUrl, message) {
 async function twitterLogin (username, password, email, useragent, proxyString) {
   console.log('Account Selected: ' + username)
   console.log('Proxy Selected: ' + proxyString)
+  const proxyArray = proxyString.split(':')
+  const proxyData = 'http://' + proxyArray[2] + ':' + proxyArray[3] + '@' + proxyArray[0] + ':' + proxyArray[1]
+  const proxyUrl = await proxyChain.anonymizeProxy(proxyData)
+  const browser = await puppeteer.launch({ headless: true, executablePath, args: [`--proxy-server=${proxyUrl}`] })
+
   try {
-    const proxyArray = proxyString.split(':')
-    const proxyData = 'http://' + proxyArray[2] + ':' + proxyArray[3] + '@' + proxyArray[0] + ':' + proxyArray[1]
-    const proxyUrl = await proxyChain.anonymizeProxy(proxyData)
-    const browser = await puppeteer.launch({ headless: true, executablePath, args: [`--proxy-server=${proxyUrl}`] })
     const context = browser.defaultBrowserContext()
     context.overridePermissions('https://twitter.com', ['geolocation', 'notifications'])
     context.overridePermissions('https://www.twitter.com', ['geolocation', 'notifications'])
@@ -67,20 +68,20 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
     await page.setDefaultNavigationTimeout(300000)
 
     await page.goto('https://twitter.com/login', { waitUntil: 'networkidle0' })
-    const loginStatus = await customWaitForText(page, 'Phone, email, or username', 200, 'login')
+    const loginStatus = await customWaitForText(page, 'Phone, email, or username', 20, 'login')
     if (loginStatus) {
       console.log('Login page loaded correctly - Starting sign-in process')
     } else { gracefulExit(browser, proxyChain, proxyUrl, 'Login page is down - Exiting') }
 
     await page.waitForSelector('input[autocomplete="username"]')
-    await page.type('input[autocomplete="username"]', username, { delay: 200 })
+    await page.type('input[autocomplete="username"]', username, { delay: 20 })
     const [nextButton] = await page.$x("//span[contains(., 'Next')]")
     if (nextButton) {
       await nextButton.click()
     } else { gracefulExit(browser, proxyChain, proxyUrl, 'Login page next button not found - Exiting') }
-    await page.waitForTimeout(4000)
+    await page.waitForTimeout(1000)
 
-    await page.type('input[autocomplete="current-password"]', password, { delay: 200 })
+    await page.type('input[autocomplete="current-password"]', password, { delay: 20 })
 
     const [loginButton] = await page.$x("//span[contains(., 'Log in')]")
     if (loginButton) {
@@ -96,7 +97,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
       console.log('Account needs email verification')
       await page.waitForSelector('input[autocomplete="email"]')
       console.log('Email Input Found!')
-      await page.type('input[autocomplete="email"]', email, { delay: 200 })
+      await page.type('input[autocomplete="email"]', email, { delay: 20 })
       const [emailNextButton] = await page.$x("//span[contains(., 'Next')]")
       if (emailNextButton) {
         console.log('Email Next Button Found!')
@@ -118,7 +119,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
     if (welcomeBackStatus || successfulStatus) {
       console.log('Account login successful!')
       await checkForCookiesButton(page)
-      await updateDatabase(username, true)
+      //await updateDatabase(username, true)
       const actionConstant = 10000
       await reportStatus('Login', 'success')
 
@@ -136,7 +137,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
 
       // Action 3.1 - Group Reply
       //if (getRandomInt(actionConstant) < (botData.groupReplyRate * actionConstant)) {
-      const groupReplyRandomInt = getRandomIntBetween(1, 4);
+      const groupReplyRandomInt = getRandomIntBetween(2, 6);
       for(let i = 0; i < groupReplyRandomInt; i++) {
         const tweetReply = await getRandomReply()
         const groupReplyFlag = await sendReply(page, tweetReply[0], tweetReply[1])
@@ -172,10 +173,10 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
   } catch (err) {
     console.log(err);
     await reportStatus('Login', 'failure')
+    gracefulExit(browser, proxyChain, proxyUrl, err);
     return new Promise((resolve, reject) => {
       resolve(false)
     })
-    // gracefulExit(browser, proxyChain, proxyUrl, err);
   }
 }
 async function getRandomReply() {
