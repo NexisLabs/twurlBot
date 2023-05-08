@@ -262,21 +262,22 @@ async function sendReply (page, tweetUrl, replyText) {
       const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]")
       if (replyTextBox && replyTextBox) {
         console.log('Reply text box & button found')
-        await replyTextBox.click({ delay: 100 })
-        await replyTextBox.type(replyText, { delay: 20 })
+        await replyTextBox.click({ delay: 1000 })
+        await replyTextBox.type(replyText, { delay: 100 })
         console.log('Reply text entered')
         console.log('Reply text: ' + replyText);
+        console.log('Tweet Url: ' + tweetUrl);
         const [replyButton] = await page.$x("//span[contains(., 'Reply')]")
 
         //await page.evaluate((element) => {
         //  element.click()
         //}, replyButton)
 
-        //await page.waitForTimeout(100)
-        //await page.keyboard.press('Enter')
-        //await page.waitForTimeout(100)
-        //await page.keyboard.press('Enter')
-        //await page.waitForTimeout(100)
+        await page.waitForTimeout(100)
+        await page.keyboard.press('Enter')
+        await page.waitForTimeout(100)
+        await page.keyboard.press('Enter')
+        await page.waitForTimeout(100)
         //const [replyButton] = await page.$x('div[data-testid="tweetButtonInline"]');
 
         if (replyButton) {
