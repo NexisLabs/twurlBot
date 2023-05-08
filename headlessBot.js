@@ -137,7 +137,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
       // Action 3.1 - Group Reply
       //if (getRandomInt(actionConstant) < (botData.groupReplyRate * actionConstant)) {
       const groupReplyRandomInt = getRandomIntBetween(1, 4);
-      for(let i = 0; i < groupRandomInt; i++) {
+      for(let i = 0; i < groupReplyRandomInt; i++) {
         const tweetReply = await getRandomReply()
         const groupReplyFlag = await sendReply(page, tweetReply[0], tweetReply[1])
         if (groupReplyFlag == true) {
