@@ -267,11 +267,11 @@ async function sendReply (page, tweetUrl, replyText) {
         await replyTextBox.type(replyText, { delay: 20 })
         console.log('Reply text entered')
         console.log('Reply text: ' + replyText);
-        await page.waitForTimeout(100)
-        await page.keyboard.press('Enter')
-        await page.waitForTimeout(100)
-        await page.keyboard.press('Enter')
-        await page.waitForTimeout(100)
+        //await page.waitForTimeout(100)
+        //await page.keyboard.press('Enter')
+        //await page.waitForTimeout(100)
+        //await page.keyboard.press('Enter')
+        //await page.waitForTimeout(100)
         //const [replyButton] = await page.$x('div[data-testid="tweetButtonInline"]');
 
         //if (replyButton) {
