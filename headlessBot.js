@@ -212,7 +212,7 @@ async function sendReply (page, tweetUrl, replyText) {
         console.log('Like button detection successful - Count: ' + likeButtons.length);
         for(let i = 0; i < Math.min(likeButtons.length, randomLikeButtonsInt); i++) {
           await likeButtons[i].click({delay: 100});
-          console.log('Like click successful - Index: ' + i)'
+          console.log('Like click successful - Index: ' + i)
         }
       }
 
@@ -222,7 +222,7 @@ async function sendReply (page, tweetUrl, replyText) {
         console.log('Retweet button detection successful - Count: ' + retweetButtons.length);
         for(let i = 0; i < Math.min(retweetButtons.length, randomRetweetButtonsInt); i++) {
           await retweetButtons[i].click({delay: 100});
-          console.log('Retweet click successful - Index: ' + i)'
+          console.log('Retweet click successful - Index: ' + i)
         }
       }
 
