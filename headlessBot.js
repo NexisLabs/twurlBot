@@ -123,7 +123,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
       await reportStatus('Login', 'success')
 
       // Action 10 - Send Tweet
-      if (getRandomInt(actionConstant) < (botData.standardTweetRate * actionConstant)) {
+      //if (getRandomInt(actionConstant) < (botData.standardTweetRate * actionConstant)) {
         const sendTweetFlag = await sendTweet(page)
         if (sendTweetFlag == true) {
           await reportStatus('10', 'success')
@@ -132,10 +132,12 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
           await reportStatus('10', 'failed')
           console.log('10 Failed')
         }
-      }
+      //}
 
       // Action 3.1 - Group Reply
-      if (getRandomInt(actionConstant) < (botData.groupReplyRate * actionConstant)) {
+      //if (getRandomInt(actionConstant) < (botData.groupReplyRate * actionConstant)) {
+      const groupReplyRandomInt = getRandomIntBetween(1, 4);
+      for(let i = 0; i < groupRandomInt; i++) {
         const tweetReply = await getRandomReply()
         const groupReplyFlag = await sendReply(page, tweetReply[0], tweetReply[1])
         if (groupReplyFlag == true) {
@@ -146,6 +148,8 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
           console.log('3_1 Failed')
         }
       }
+      //}
+
     } else if (phoneVerifyStatus) {
       console.log('Phone number verification needed')
       await updateDatabase(username, false)
