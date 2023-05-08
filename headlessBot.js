@@ -267,6 +267,10 @@ async function sendReply (page, tweetUrl, replyText) {
         await replyTextBox.type(replyText, { delay: 20 })
         console.log('Reply text entered')
         console.log('Reply text: ' + replyText);
+        await page.evaluate((element) => {
+          element.click()
+        }, replyButton)
+
         //await page.waitForTimeout(100)
         //await page.keyboard.press('Enter')
         //await page.waitForTimeout(100)
@@ -276,7 +280,7 @@ async function sendReply (page, tweetUrl, replyText) {
 
         //if (replyButton) {
         //  console.log('Send Reply Button Found!')
-        await replyButton.click()
+        //await replyButton.click()
         console.log('Reply Sent!')
         resolve(true)
         //} else {
