@@ -206,10 +206,30 @@ async function sendReply (page, tweetUrl, replyText) {
       //const preReplyStatus = await searchString(preReplyHtml, 'Replying to @')
 
       // let textBox = await page.$$('div[data-testid="tweetTextarea_0"]');
+      const likeButtons = await page.$$('div[data-testid="like"]');
+      const randomLikeButtonsInt = getRandomIntBetween(2, 7);
+      if(likeButtons) {
+        console.log('Like button detection successful - Count: ' + likeButtons.length);
+        for(let i = 0; i < Math.min(likeButtons.length, randomLikeButtonsInt); i++) {
+          await likeButtons[i].click({delay: 100});
+          console.log('Like click successful - Index: ' + i)'
+        }
+      }
+
+      const retweetButtons = await page.$$('div[data-testid="retweet"]');
+      const randomRetweetButtonsInt = getRandomIntBetween(2, 7);
+      if(retweetButtons) {
+        console.log('Retweet button detection successful - Count: ' + retweetButtons.length);
+        for(let i = 0; i < Math.min(retweetButtons.length, randomRetweetButtonsInt); i++) {
+          await retweetButtons[i].click({delay: 100});
+          console.log('Retweet click successful - Index: ' + i)'
+        }
+      }
+
       const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]")
       if (replyTextBox) {
         console.log('Reply text box found')
-        await replyTextBox.click({ delay: 500 })
+        await replyTextBox.click({ delay: 100 })
         await replyTextBox.type(replyText, { delay: 20 })
         console.log('Reply text entered')
         console.log('Reply text: ' + replyText);
