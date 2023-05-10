@@ -262,9 +262,9 @@ async function sendReply (page, tweetUrl, replyText) {
       const [initialReplyTextBox] = await page.$$('div[aria-label="Tweet text"]');
       if(initialReplyTextBox) {
         console.log('Initial reply text box detected');
-        await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPreClickScreenshot.jpg` });
+        //await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPreClickScreenshot.jpg` });
         await initialReplyTextBox.click({ delay: 500 })
-        await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPreTextScreenshot.jpg` });
+        //await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPreTextScreenshot.jpg` });
         const preReplyTextHtml = await page.content()
         const preReplyTextStatus = await searchString(preReplyTextHtml, 'Replying to ')
       	if(preReplyTextStatus) {
@@ -278,7 +278,7 @@ async function sendReply (page, tweetUrl, replyText) {
             console.log('Reply text entered')
             console.log('Reply text: ' + replyText);
             console.log('Tweet Url: ' + tweetUrl);
-            await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostTextScreenshot.jpg` });
+            //await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostTextScreenshot.jpg` });
             //const [replyButton] = await page.$x('div[data-testid="tweetButtonInline"]');
             //const [replyButton] = await page.$x('//div[data-testid="tweetButtonInline"]/span[contains(., "Reply")]');
             //const replyButtonParent1 = await page.$x('div[data-testid="tweetButtonInline"]');
@@ -314,7 +314,7 @@ async function sendReply (page, tweetUrl, replyText) {
               }
               //await customWaitForText(page, 'Tweet your reply', 10, 2, 'replyConfirmation')
               //await page.waitForTimeout(5000)
-              await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostSendScreenshot.jpg` });
+              //await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostSendScreenshot.jpg` });
               resolve(true)
             } else { resolve(false); }
           //} else { resolve(false); }
