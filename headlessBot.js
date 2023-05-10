@@ -1,4 +1,4 @@
- const { getRandomPhoto, getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getBannerPhoto, getProfilePhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('./helpers/botHelpers.js');
+const { getRandomPhoto, getGenderFromName, addMediaUseToDatabase, getTwitterBio, getRandomProfileData, checkForTwitterDuplicateProfileUse, checkForTwitterDuplicateAccountUse, getRemoteUntouchableAccounts, getBannerPhoto, getProfilePhoto, getImageProfile, reportStatus, botLog, getReplyText, updateDatabase, getTimestamp, objectKeysToLowercase, getRandomIntBetween, getRandomInt, selectTags, searchString, getTweetText, databaseUrl, myPassword } = require('./helpers/botHelpers.js');
 const { Client } = require('pg')
 const axios = require('axios')
 const Fakerator = require('fakerator')
@@ -68,7 +68,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
     await page.setDefaultNavigationTimeout(30000)
 
     await page.goto('https://twitter.com/login', { waitUntil: 'networkidle0' })
-    const loginStatus = await customWaitForText(page, 'Phone, email, or username', 20, 'login')
+    const loginStatus = await customWaitForText(page, 'Phone, email, or username', 20, 10, 'login')
     if (loginStatus) {
       console.log('Login page loaded correctly - Starting sign-in process')
     } else { gracefulExit(browser, proxyChain, proxyUrl, 'Login page is down - Exiting') }
@@ -88,7 +88,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
       await loginButton.click()
     } else { gracefulExit(browser, proxyChain, proxyUrl, 'Login button not found - Exiting') }
 
-    await customWaitForText(page, 'happening?', 20, 'straightLogin')
+    await customWaitForText(page, 'happening?', 20, 10, 'straightLogin')
     await checkForCookiesButton(page)
     const html = await page.content()
 
@@ -103,7 +103,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         console.log('Email Next Button Found!')
         await emailNextButton.click()
       }
-      await customWaitForText(page, 'happening?', 20, 'straightLoginEmail')
+      await customWaitForText(page, 'happening?', 20, 10, 'straightLoginEmail')
     }
 
     const suspendedStatus = await searchString(html, 'permanently suspended')
@@ -132,7 +132,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
         } else {
           await reportStatus('10', 'failed')
           console.log('10 Failed')
-        }
+        } 
       //}
 
       // Action 3.1 - Group Reply
@@ -259,11 +259,76 @@ async function sendReply (page, tweetUrl, replyText) {
 
       // let textBox = await page.$$('div[data-testid="tweetTextarea_0"]');
 
-      const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]")
-      if (replyTextBox && replyTextBox) {
+      const [initialReplyTextBox] = await page.$$('div[aria-label="Tweet text"]');
+      if(initialReplyTextBox) {
+        console.log('Initial reply text box detected');
+        await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPreClickScreenshot.jpg` });
+        await initialReplyTextBox.click({ delay: 500 })
+        await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPreTextScreenshot.jpg` });
+        const preReplyTextHtml = await page.content()
+        const preReplyTextStatus = await searchString(preReplyTextHtml, 'Replying to ')
+      	if(preReplyTextStatus) {
+          console.log('Replying to @ text detected');
+          //const [replyTextBox] = await page.$x('div[aria-label="Tweet text"]');
+          //const replyTextBox = await page.getByRole('button', { name: 'Search' }) /
+          //class="DraftEditor-root"
+          const replyTextBox = await page.$(".DraftEditor-root");
+          //if(replyTextBox) {
+            await replyTextBox.type(replyText, { delay: 100 })
+            console.log('Reply text entered')
+            console.log('Reply text: ' + replyText);
+            console.log('Tweet Url: ' + tweetUrl);
+            await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostTextScreenshot.jpg` });
+            //const [replyButton] = await page.$x('div[data-testid="tweetButtonInline"]');
+            //const [replyButton] = await page.$x('//div[data-testid="tweetButtonInline"]/span[contains(., "Reply")]');
+            //const replyButtonParent1 = await page.$x('div[data-testid="tweetButtonInline"]');
+            //console.log(replyButtonParent1);
+            //const replyButton = await page.evaluateHandle(el => el.firstElementChild, replyButtonParent1);
+            //console.log(replyButton);
+            //const replyButtonParent3 = await page.evaluateHandle(el => el.firstElementChild, replyButtonParent2);
+            //const replyButton = await page.evaluateHandle(el => el.firstElementChild, replyButtonParent2);
+            //await page.evaluate(() => {
+            //  document.querySelector('.login-form-button').firstElementChild.click();
+            //});
+            const [replyButton] = await page.$x("//span[contains(., 'Reply')]")
+            if(replyButton) {
+              await replyButton.click({ delay: 1000 })
+              await replyButton.click()
+            //  await page.keyboard.press("Tab");
+            //  await page.keyboard.press("Tab");
+            //  await page.keyboard.press("Tab");
+            //  await page.keyboard.press("Enter");
+              console.log('Send Reply Button Found!')
+            //  await replyTextBox.type(replyText, { delay: 3000 })
+              console.log('Reply Sent!')
+              var confirmedReplyFlag = false;
+              var confirmationCount = 0;
+              while(confirmedReplyFlag == false && confirmationCount < 10) {
+                  await page.waitForTimeout(1000);
+                  let confirmedReplyHtml = await page.content();
+                  confirmedReplyFlag = await searchString(confirmedReplyHtml, 'was sent');
+                  confirmationCount++;
+                  if(confirmationCount >= 10 && confirmedReplyFlag == false) {
+                    resolve(false);
+                  }
+              }
+              //await customWaitForText(page, 'Tweet your reply', 10, 2, 'replyConfirmation')
+              //await page.waitForTimeout(5000)
+              await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostSendScreenshot.jpg` });
+              resolve(true)
+            } else { resolve(false); }
+          //} else { resolve(false); }
+        } else { resolve(false); }
+      } else { resolve(false); }
+
+      //const [replyTextBox] = await page.$x("//div[contains(., 'Tweet your reply')]")
+/*      if (replyTextBox && replyTextBox) {
         console.log('Reply text box & button found')
+        await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPreClickScreenshot.jpg` });
         await replyTextBox.click({ delay: 1000 })
+        await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPreTextScreenshot.jpg` });
         await replyTextBox.type(replyText, { delay: 100 })
+        await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostTextScreenshot.jpg` });
         console.log('Reply text entered')
         console.log('Reply text: ' + replyText);
         console.log('Tweet Url: ' + tweetUrl);
@@ -278,12 +343,15 @@ async function sendReply (page, tweetUrl, replyText) {
         await page.waitForTimeout(100)
         await page.keyboard.press('Enter')
         await page.waitForTimeout(100)
+        await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostEnterScreenshot.jpg` });
+
         //const [replyButton] = await page.$x('div[data-testid="tweetButtonInline"]');
 
         if (replyButton) {
           console.log('Send Reply Button Found!')
           await replyButton.click()
           console.log('Reply Sent!')
+          await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostSendScreenshot.jpg` });
           resolve(true)
         } else {
           console.log('Send Reply Button Not Found')
@@ -292,7 +360,7 @@ async function sendReply (page, tweetUrl, replyText) {
       } else {
         console.log('Reply Text Box Not Found')
         resolve(false)
-      }
+      }*/
 
     } catch (err) {
       console.log('Reply Caught Error: ' + err)
@@ -490,9 +558,9 @@ async function checkForCookiesButton (page) {
     })
   }
 }
-async function customWaitForText (page, text, seconds, customName) {
-  for (let i = 0; i < (seconds / 10); i++) {
-    await page.waitForTimeout(10000)
+async function customWaitForText (page, text, seconds, interval, customName) {
+  for (let i = 0; i < (seconds / interval); i++) {
+    await page.waitForTimeout(1000 * interval)
     // await page.screenshot({path: '/home/twitbot/twurlBot/logs/' + customName + 'Screenshot.jpg', fullPage: true})
     const html = await page.content()
     // fs.writeFileSync('/home/twitbot/twurlBot/logs/'+ customName +'Log.txt', html);
