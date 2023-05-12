@@ -25,6 +25,14 @@ async function initialize () {
   loginArray = await getRemoteLogins()
   start();
   start();
+/*  setTimeout(() => {
+    console.log("Delayed for 20 seconds. Starting another instance");
+    start();
+  }, 20000);*/
+/*  setTimeout(() => {
+    console.log("Delayed for 20 seconds. Starting another instance");
+    start();
+  }, 20000);*/
 }
 async function start() {
   while (true) {
@@ -111,7 +119,7 @@ async function twitterLogin (username, password, email, useragent, proxyString) 
 
     const postEmailHtml = await page.content()
     const welcomeBackStatus = await searchString(postEmailHtml, 'Welcome back')
-    const successfulStatus = await searchString(postEmailHtml, 'What’s happening?')
+    const successfulStatus = await searchString(postEmailHtml, 'happening')
     const lockedVerifyStatus = await searchString(postEmailHtml, 'Your account has been locked')
     const authenticationStatus = await searchString(postEmailHtml, 'arkose_iframe')
     const phoneVerifyStatus = await searchString(postEmailHtml, 'Enter your phone number')
@@ -309,12 +317,13 @@ async function sendReply (page, tweetUrl, replyText) {
                   confirmedReplyFlag = await searchString(confirmedReplyHtml, 'was sent');
                   confirmationCount++;
                   if(confirmationCount >= 10 && confirmedReplyFlag == false) {
+                    await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostSendScreenshotFail.jpg` });
                     resolve(false);
                   }
               }
               //await customWaitForText(page, 'Tweet your reply', 10, 2, 'replyConfirmation')
               //await page.waitForTimeout(5000)
-              //await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostSendScreenshot.jpg` });
+              await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostSendScreenshotSuccess.jpg` });
               resolve(true)
             } else { resolve(false); }
           //} else { resolve(false); }
@@ -363,6 +372,8 @@ async function sendReply (page, tweetUrl, replyText) {
       }*/
 
     } catch (err) {
+      await page.screenshot({ path: `/home/twitbot/twurlBot/logs/replyPostSendScreenshotFail.jpg` });
+
       console.log('Reply Caught Error: ' + err)
       resolve(false)
     }
