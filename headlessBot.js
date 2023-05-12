@@ -230,6 +230,8 @@ async function sendLikesRetweets (page, tweetUrl) {
         for(let i = 0; i < Math.min(likeButtons.length, randomLikeButtonsInt); i++) {
           await likeButtons[i].click({delay: 100});
           console.log('Like click successful - Index: ' + i)
+          await page.screenshot({ path: `/home/twitbot/twurlBot/logs/likePostClickScreenshot.jpg` });
+
         }
       }
       }catch(err) {
@@ -242,8 +244,17 @@ async function sendLikesRetweets (page, tweetUrl) {
       if(retweetButtons) {
         console.log('Retweet button detection successful - Count: ' + retweetButtons.length);
         for(let i = 0; i < Math.min(retweetButtons.length, randomRetweetButtonsInt); i++) {
-          await retweetButtons[i].click({delay: 100});
+          await retweetButtons[i].click({delay: 1000});
           console.log('Retweet click successful - Index: ' + i)
+          await page.screenshot({ path: `/home/twitbot/twurlBot/logs/retweetPostClickScreenshot.jpg` });
+          const [retweetConfirmButton] = await page.$x("//span[contains(., 'Retweet')]")
+          if(retweetConfirmButton) {
+            await retweetConfirmButton.click({ delay: 1000 })
+            console.log('Retweet confirmation button detected and clicked - Index: ' + i);
+            await page.screenshot({ path: `/home/twitbot/twurlBot/logs/retweetPostConfirmClickScreenshot.jpg` });
+          } else {
+            console.log('Retweet confirmation button NOT detected and clicked - Index: ' + i);
+          }
         }
       }
       }catch(err) {
